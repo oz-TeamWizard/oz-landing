@@ -1,89 +1,359 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 운동식단 상담</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>💪 AI 운동식단 상담</h1>
-            <p>당신의 키와 몸무게를 입력하면 맞춤형 운동식단을 추천해드립니다!</p>
-        </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mealStack - 맞춤형 단백질 계산기</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-red: #dc2626;
+        --dark-bg: #1a1a1a;
+        --card-bg: #2d2d2d;
+        --text-light: #f8f9fa;
+        --border-color: #404040;
+      }
 
-        <main>
-            <div class="input-section">
-                <form id="fitness-form">
-                    <div class="form-group">
-                        <label for="height">키 (cm)</label>
-                        <input type="number" id="height" placeholder="예: 170" min="100" max="250" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="weight">몸무게 (kg)</label>
-                        <input type="number" id="weight" placeholder="예: 70" min="30" max="200" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="age">나이</label>
-                        <input type="number" id="age" placeholder="예: 25" min="10" max="100" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gender">성별</label>
-                        <select id="gender" required>
-                            <option value="">선택하세요</option>
-                            <option value="male">남성</option>
-                            <option value="female">여성</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="activity">활동량</label>
-                        <select id="activity" required>
-                            <option value="">선택하세요</option>
-                            <option value="low">낮음 (앉아서 하는 일)</option>
-                            <option value="moderate">보통 (가벼운 운동 1-3회/주)</option>
-                            <option value="high">높음 (적극적인 운동 3-5회/주)</option>
-                            <option value="very_high">매우 높음 (매일 운동)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="goal">목표</label>
-                        <select id="goal" required>
-                            <option value="">선택하세요</option>
-                            <option value="lose_weight">체중 감량</option>
-                            <option value="maintain">체중 유지</option>
-                            <option value="gain_muscle">근육 증량</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" id="submit-btn">
-                        <span class="btn-text">AI 상담 받기</span>
-                        <div class="loading" style="display: none;">
-                            <div class="spinner"></div>
-                        </div>
-                    </button>
-                </form>
-            </div>
+      body {
+        background: linear-gradient(135deg, var(--dark-bg) 0%, #0f0f0f 100%);
+        color: var(--text-light);
+        font-family: "Arial", sans-serif;
+        min-height: 100vh;
+      }
 
-            <div class="result-section" id="result-section" style="display: none;">
-                <h2>🎯 맞춤형 운동식단 추천</h2>
-                <div class="result-content" id="result-content">
-                    <!-- AI 응답 결과가 여기에 표시됩니다 -->
-                </div>
-                <button id="reset-btn" class="reset-button">다시 상담받기</button>
-            </div>
-        </main>
+      .navbar {
+        background: rgba(26, 26, 26, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-color);
+      }
 
-        <footer>
-            <p>&copy; 2024 AI 운동식단 상담. All rights reserved.</p>
-        </footer>
+      .brand-logo {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary-red) !important;
+        text-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+      }
+
+      .hero-section {
+        padding: 80px 0;
+        text-align: center;
+      }
+
+      .hero-title {
+        font-size: 3.5rem;
+        font-weight: 900;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, var(--primary-red), #ff4d4d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+        color: #cccccc;
+        margin-bottom: 2rem;
+      }
+
+      .input-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .form-control,
+      .form-select {
+        background: #1a1a1a;
+        border: 2px solid var(--border-color);
+        color: var(--text-light);
+        border-radius: 10px;
+        padding: 12px 16px;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        background: #1a1a1a;
+        border-color: var(--primary-red);
+        color: var(--text-light);
+        box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+      }
+
+      .btn-primary {
+        background: linear-gradient(45deg, var(--primary-red), #ff4d4d);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
+        background: linear-gradient(45deg, #b91c1c, var(--primary-red));
+      }
+
+      .result-card {
+        background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 2rem 0;
+        box-shadow: 0 15px 35px rgba(220, 38, 38, 0.3);
+        display: none;
+      }
+
+      .protein-amount {
+        font-size: 4rem;
+        font-weight: 900;
+        color: white;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        margin-bottom: 0.5rem;
+      }
+
+      .protein-label {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .meal-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .meal-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        border-color: var(--primary-red);
+      }
+
+      .meal-title {
+        color: var(--primary-red);
+        font-weight: bold;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+      }
+
+      .food-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .food-item:last-child {
+        border-bottom: none;
+      }
+
+      .protein-badge {
+        background: var(--primary-red);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+      }
+
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin: 4rem 0 2rem 0;
+        color: var(--primary-red);
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        color: var(--primary-red);
+      }
+
+      .language-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+      }
+
+      @media (max-width: 768px) {
+        .hero-title {
+          font-size: 2.5rem;
+        }
+        .protein-amount {
+          font-size: 3rem;
+        }
+        .input-card {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Language Toggle -->
+    <div class="language-toggle">
+      <button class="btn btn-outline-light btn-sm" onclick="switchLanguage()">
+        <i class="fas fa-globe"></i> EN
+      </button>
     </div>
 
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand brand-logo" href="#">
+          <i class="fas fa-dumbbell"></i> mealStack
+        </a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container">
+        <h1 class="hero-title">맞춤형 단백질 계산기</h1>
+        <p class="hero-subtitle">
+          당신의 체형 목표에 맞는 완벽한 단백질 섭취량과 식단을 제공합니다
+        </p>
+      </div>
+    </section>
+
+    <!-- Input Section -->
+    <section class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="input-card">
+            <h3 class="text-center mb-4">
+              <i class="fas fa-calculator text-danger"></i> 계산 시작하기
+            </h3>
+
+            <form id="proteinForm">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">몸무게 (kg)</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="weight"
+                    min="40"
+                    max="150"
+                    placeholder="70"
+                    required
+                  />
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">체형 목표</label>
+                  <select class="form-select" id="goal" required>
+                    <option value="">선택하세요</option>
+                    <option value="bulkup">벌크업 (근육 증가)</option>
+                    <option value="lean_bulkup">린벌크업 (깔끔한 증량)</option>
+                    <option value="cutting">컷팅 (체지방 감소)</option>
+                    <option value="maintain">유지 (현상 유지)</option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">활동 수준</label>
+                  <select class="form-select" id="activity" required>
+                    <option value="">선택하세요</option>
+                    <option value="low">낮음 (주 3회 이하)</option>
+                    <option value="moderate">보통 (주 4-5회)</option>
+                    <option value="high">높음 (주 6회 이상)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-bolt"></i> 단백질량 계산하기
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <div class="container">
+      <div class="loading" id="loading">
+        <i class="fas fa-spinner fa-spin fa-3x text-danger"></i>
+        <p class="mt-3">최적의 식단을 계산 중입니다...</p>
+      </div>
+    </div>
+
+    <!-- Result Section -->
+    <section class="container">
+      <div id="resultSection" style="display: none">
+        <div class="result-card">
+          <div class="protein-amount" id="proteinAmount">0</div>
+          <div class="protein-label">일일 권장 단백질</div>
+          <p class="mt-3 mb-0" id="goalDescription"></p>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="input-card">
+              <h5><i class="fas fa-chart-pie text-danger"></i> 영양소 분배</h5>
+              <div id="nutritionBreakdown"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="input-card">
+              <h5>
+                <i class="fas fa-clock text-danger"></i> 식사별 단백질 배분
+              </h5>
+              <div id="mealBreakdown"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Meal Plans Section -->
+    <section class="container" id="mealPlansSection" style="display: none">
+      <h2 class="section-title"><i class="fas fa-utensils"></i> 추천 식단</h2>
+      <div id="mealPlans"></div>
+    </section>
+
+    <!-- Protein Chart Section -->
+    <section class="container" id="proteinChartSection" style="display: none">
+      <h2 class="section-title">
+        <i class="fas fa-chart-bar"></i> 고단백 식품 가이드
+      </h2>
+      <div class="row" id="proteinChart"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      class="text-center py-5 mt-5"
+      style="border-top: 1px solid var(--border-color)"
+    >
+      <div class="container">
+        <p class="text-muted">
+          © 2025 mealStack. 건강한 단백질 라이프를 시작하세요.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Main Application Script -->
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
