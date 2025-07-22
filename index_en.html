@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mealStack - Personalized Protein Calculator</title>
+    <meta
+      name="description"
+      content="Calculate your daily protein needs and get personalized meal plans for bulking, cutting, and maintaining your physique."
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Language Toggle -->
+    <div class="language-toggle">
+      <button class="btn btn-outline-light btn-sm" onclick="switchLanguage()">
+        <i class="fas fa-globe"></i> KO
+      </button>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand brand-logo" href="#">
+          <i class="fas fa-dumbbell"></i> mealStack
+        </a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container">
+        <h1 class="hero-title">Protein Calculator</h1>
+        <p class="hero-subtitle">
+          Get personalized protein intake and meal plans tailored to your
+          fitness goals
+        </p>
+      </div>
+    </section>
+
+    <!-- Input Section -->
+    <section class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="input-card">
+            <h3 class="text-center mb-4">
+              <i class="fas fa-calculator text-danger"></i> Start Calculating
+            </h3>
+
+            <form id="proteinForm">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Body Weight (kg)</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="weight"
+                    min="40"
+                    max="150"
+                    placeholder="70"
+                    required
+                  />
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Fitness Goal</label>
+                  <select class="form-select" id="goal" required>
+                    <option value="">Select Goal</option>
+                    <option value="bulkup">Bulking (Muscle Gain)</option>
+                    <option value="lean_bulkup">
+                      Lean Bulking (Clean Gain)
+                    </option>
+                    <option value="cutting">Cutting (Fat Loss)</option>
+                    <option value="maintain">
+                      Maintenance (Current Physique)
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Activity Level</label>
+                  <select class="form-select" id="activity" required>
+                    <option value="">Select Level</option>
+                    <option value="low">Low (3x/week or less)</option>
+                    <option value="moderate">Moderate (4-5x/week)</option>
+                    <option value="high">High (6x/week or more)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-bolt"></i> Calculate My Protein
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <div class="container">
+      <div class="loading" id="loading">
+        <i class="fas fa-spinner fa-spin fa-3x text-danger"></i>
+        <p class="mt-3">Calculating your optimal meal plan...</p>
+      </div>
+    </div>
+
+    <!-- Result Section -->
+    <section class="container">
+      <div id="resultSection" style="display: none">
+        <div class="result-card">
+          <div class="protein-amount" id="proteinAmount">0</div>
+          <div class="protein-label">Daily Protein Target</div>
+          <p class="mt-3 mb-0" id="goalDescription"></p>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="input-card">
+              <h5>
+                <i class="fas fa-chart-pie text-danger"></i> Macro Breakdown
+              </h5>
+              <div id="nutritionBreakdown"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="input-card">
+              <h5>
+                <i class="fas fa-clock text-danger"></i> Protein Distribution
+              </h5>
+              <div id="mealBreakdown"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Meal Plans Section -->
+    <section class="container" id="mealPlansSection" style="display: none">
+      <h2 class="section-title">
+        <i class="fas fa-utensils"></i> Recommended Meal Plans
+      </h2>
+      <div id="mealPlans"></div>
+    </section>
+
+    <!-- Protein Chart Section -->
+    <section class="container" id="proteinChartSection" style="display: none">
+      <h2 class="section-title">
+        <i class="fas fa-chart-bar"></i> High-Protein Food Guide
+      </h2>
+      <div class="row" id="proteinChart"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      class="text-center py-5 mt-5"
+      style="border-top: 1px solid var(--border-color)"
+    >
+      <div class="container">
+        <p class="text-muted">
+          © 2025 mealStack. Start your healthy protein journey today.
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Data
+      const proteinCoefficients = {
+        bulkup: {
+          recommended: 2.2,
+          description: "High-protein diet for maximum muscle growth",
+        },
+        lean_bulkup: {
+          recommended: 2.0,
+          description: "Clean muscle gain with minimal fat accumulation",
+        },
+        cutting: {
+          recommended: 2.5,
+          description: "Preserve muscle mass while losing body fat",
+        },
+        maintain: {
+          recommended: 1.8,
+          description: "Maintain current physique and performance",
+        },
+      };
+
+      const activityMultipliers = {
+        low: 1.0,
+        moderate: 1.1,
+        high: 1.2,
+      };
+
+      const mealDistribution = {
+        Breakfast: 0.25,
+        Lunch: 0.3,
+        Dinner: 0.3,
+        Snack: 0.15,
+      };
+
+      const mealTemplates = {
+        bulkup: {
+          breakfast: {
+            name: "Power Breakfast",
+            foods: [
+              { name: "Whole Eggs", amount: "3 eggs", protein: 19.5 },
+              { name: "Oatmeal", amount: "60g", protein: 10.1 },
+              { name: "Milk", amount: "250ml", protein: 8.5 },
+            ],
+          },
+          lunch: {
+            name: "Bulking Lunch",
+            foods: [
+              { name: "Chicken Breast", amount: "200g", protein: 62.0 },
+              { name: "Brown Rice", amount: "100g", protein: 7.9 },
+              { name: "Broccoli", amount: "100g", protein: 2.8 },
+            ],
+          },
+          dinner: {
+            name: "Muscle Dinner",
+            foods: [
+              { name: "Salmon", amount: "180g", protein: 45.0 },
+              { name: "Sweet Potato", amount: "150g", protein: 3.0 },
+              { name: "Spinach", amount: "100g", protein: 2.9 },
+            ],
+          },
+          snack: {
+            name: "Post-Workout",
+            foods: [
+              { name: "Whey Protein", amount: "30g", protein: 24.0 },
+              { name: "Banana", amount: "1 medium", protein: 1.1 },
+            ],
+          },
+        },
+        lean_bulkup: {
+          breakfast: {
+            name: "Lean Morning",
+            foods: [
+              { name: "Egg Whites", amount: "4 whites", protein: 14.0 },
+              { name: "Oatmeal", amount: "50g", protein: 8.5 },
+            ],
+          },
+          lunch: {
+            name: "Clean Lunch",
+            foods: [
+              { name: "Chicken Breast", amount: "180g", protein: 55.8 },
+              { name: "Brown Rice", amount: "70g", protein: 5.5 },
+              { name: "Mixed Vegetables", amount: "150g", protein: 3.0 },
+            ],
+          },
+          dinner: {
+            name: "Lean Dinner",
+            foods: [
+              { name: "Tuna", amount: "150g", protein: 42.0 },
+              { name: "Sweet Potato", amount: "100g", protein: 2.0 },
+            ],
+          },
+          snack: {
+            name: "Lean Snack",
+            foods: [{ name: "Whey Protein", amount: "25g", protein: 20.0 }],
+          },
+        },
+        cutting: {
+          breakfast: {
+            name: "Cut Breakfast",
+            foods: [
+              { name: "Egg Whites", amount: "5 whites", protein: 17.5 },
+              { name: "Spinach", amount: "100g", protein: 2.9 },
+            ],
+          },
+          lunch: {
+            name: "Shred Lunch",
+            foods: [
+              { name: "Chicken Breast", amount: "200g", protein: 62.0 },
+              { name: "Green Salad", amount: "200g", protein: 4.0 },
+            ],
+          },
+          dinner: {
+            name: "Fat Loss Dinner",
+            foods: [
+              { name: "White Fish", amount: "180g", protein: 40.0 },
+              { name: "Broccoli", amount: "200g", protein: 5.6 },
+            ],
+          },
+          snack: {
+            name: "Night Protein",
+            foods: [{ name: "Casein Protein", amount: "25g", protein: 19.5 }],
+          },
+        },
+        maintain: {
+          breakfast: {
+            name: "Maintenance AM",
+            foods: [
+              { name: "Eggs", amount: "2 whole", protein: 13.0 },
+              { name: "Toast", amount: "2 slices", protein: 6.0 },
+            ],
+          },
+          lunch: {
+            name: "Balanced Lunch",
+            foods: [
+              { name: "Chicken Breast", amount: "150g", protein: 46.5 },
+              { name: "Brown Rice", amount: "80g", protein: 6.3 },
+            ],
+          },
+          dinner: {
+            name: "Steady Dinner",
+            foods: [
+              { name: "Tofu", amount: "150g", protein: 12.0 },
+              { name: "Vegetables", amount: "150g", protein: 3.0 },
+            ],
+          },
+          snack: {
+            name: "Maintenance Snack",
+            foods: [{ name: "Greek Yogurt", amount: "150g", protein: 15.0 }],
+          },
+        },
+      };
+
+      const proteinFoods = [
+        { name: "Chicken Breast", protein: 31.0, category: "Meat" },
+        { name: "Tuna", protein: 28.0, category: "Seafood" },
+        { name: "Eggs", protein: 13.0, category: "Dairy" },
+        { name: "Whey Protein", protein: 80.0, category: "Supplement" },
+        { name: "Tofu", protein: 8.0, category: "Plant-Based" },
+        { name: "Greek Yogurt", protein: 10.0, category: "Dairy" },
+        { name: "Salmon", protein: 25.0, category: "Seafood" },
+        { name: "Lean Beef", protein: 26.0, category: "Meat" },
+      ];
+
+      // Form handling
+      document
+        .getElementById("proteinForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          calculateProtein();
+        });
+
+      function calculateProtein() {
+        const weight = parseFloat(document.getElementById("weight").value);
+        const goal = document.getElementById("goal").value;
+        const activity = document.getElementById("activity").value;
+
+        if (!weight || !goal || !activity) {
+          alert("Please fill in all fields.");
+          return;
+        }
+
+        if (weight < 40 || weight > 150) {
+          alert("Please enter a weight between 40-150 kg.");
+          return;
+        }
+
+        // Show loading
+        document.getElementById("loading").style.display = "block";
+
+        setTimeout(() => {
+          const coefficient = proteinCoefficients[goal].recommended;
+          const multiplier = activityMultipliers[activity];
+          const totalProtein = Math.round(weight * coefficient * multiplier);
+
+          // Hide loading
+          document.getElementById("loading").style.display = "none";
+
+          // Show results
+          displayResults(totalProtein, goal, weight);
+        }, 1500);
+      }
+
+      function displayResults(totalProtein, goal, weight) {
+        // Animate protein amount
+        animateNumber(document.getElementById("proteinAmount"), totalProtein);
+        document.getElementById("goalDescription").textContent =
+          proteinCoefficients[goal].description;
+
+        // Show result section with animation
+        const resultSection = document.getElementById("resultSection");
+        resultSection.style.display = "block";
+        resultSection.scrollIntoView({ behavior: "smooth" });
+
+        // Nutrition breakdown
+        const calories =
+          weight * (goal === "bulkup" ? 45 : goal === "cutting" ? 28 : 35);
+        document.getElementById("nutritionBreakdown").innerHTML = `
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Daily Calories</span>
+                    <span class="protein-badge">${Math.round(
+                      calories
+                    )} kcal</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Protein</span>
+                    <span class="protein-badge">${totalProtein}g</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Carbohydrates</span>
+                    <span class="protein-badge">${Math.round(
+                      (calories * 0.4) / 4
+                    )}g</span>
+                </div>
+            `;
+
+        // Meal breakdown
+        let mealBreakdownHtml = "";
+        for (const [meal, ratio] of Object.entries(mealDistribution)) {
+          const mealProtein = Math.round(totalProtein * ratio);
+          mealBreakdownHtml += `
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>${meal}</span>
+                        <span class="protein-badge">${mealProtein}g</span>
+                    </div>
+                `;
+        }
+        document.getElementById("mealBreakdown").innerHTML = mealBreakdownHtml;
+
+        // Show meal plans
+        displayMealPlans(goal);
+
+        // Show protein chart
+        displayProteinChart();
+      }
+
+      function animateNumber(element, target) {
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            current = target;
+            clearInterval(timer);
+          }
+          element.textContent = Math.round(current) + "g";
+        }, 30);
+      }
+
+      function displayMealPlans(goal) {
+        const mealPlansSection = document.getElementById("mealPlansSection");
+        const mealPlans = document.getElementById("mealPlans");
+
+        let html = '<div class="row">';
+
+        const meals = mealTemplates[goal];
+        for (const [mealType, mealData] of Object.entries(meals)) {
+          const totalProtein = mealData.foods.reduce(
+            (sum, food) => sum + food.protein,
+            0
+          );
+
+          html += `
+                    <div class="col-md-6 mb-4">
+                        <div class="meal-card">
+                            <h5 class="meal-title">${mealData.name}</h5>
+                            <div class="mb-3">
+                `;
+
+          mealData.foods.forEach((food) => {
+            html += `
+                        <div class="food-item">
+                            <span>${food.name} (${food.amount})</span>
+                            <span class="protein-badge">${food.protein}g</span>
+                        </div>
+                    `;
+          });
+
+          html += `
+                            </div>
+                            <div class="text-center">
+                                <strong>Total Protein: ${totalProtein.toFixed(
+                                  1
+                                )}g</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        html += "</div>";
+        mealPlans.innerHTML = html;
+        mealPlansSection.style.display = "block";
+      }
+
+      function displayProteinChart() {
+        const proteinChart = document.getElementById("proteinChart");
+        const proteinChartSection = document.getElementById(
+          "proteinChartSection"
+        );
+
+        let html = "";
+        proteinFoods.forEach((food) => {
+          html += `
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="meal-card text-center">
+                            <h6 class="meal-title">${food.name}</h6>
+                            <div class="protein-amount" style="font-size: 1.5rem;">${food.protein}g</div>
+                            <small class="text-muted">per 100g</small>
+                            <div class="mt-2">
+                                <span class="badge bg-secondary">${food.category}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        });
+
+        proteinChart.innerHTML = html;
+        proteinChartSection.style.display = "block";
+      }
+
+      function switchLanguage() {
+        // This will switch to Korean version
+        alert("Switching to Korean version!");
+      }
+
+      // Smooth scrolling for better UX
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+            });
+          }
+        });
+      });
+
+      // Add some entrance animations
+      window.addEventListener("load", function () {
+        const cards = document.querySelectorAll(".input-card, .meal-card");
+        cards.forEach((card, index) => {
+          card.style.opacity = "0";
+          card.style.transform = "translateY(20px)";
+          setTimeout(() => {
+            card.style.transition = "all 0.6s ease";
+            card.style.opacity = "1";
+            card.style.transform = "translateY(0)";
+          }, index * 100);
+        });
+      });
+    </script>
+  </body>
+</html>
