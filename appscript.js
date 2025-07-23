@@ -4,27 +4,23 @@
  */
 function doPost(e) {
   try {
-    // 현재 활성화된 스프레드시트의 첫 번째 시트를 가져옵니다.
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-
-    // 프론트엔드(웹사이트)에서 JSON 형태로 보낸 데이터를 파싱합니다.
     const data = JSON.parse(e.postData.contents);
     const { email, protein, goal, description } = data;
 
-    // 이메일 주소가 유효한지 확인합니다. 유효하지 않으면 오류를 발생시킵니다.
     if (!email || !validateEmail(email)) {
       throw new Error("유효하지 않은 이메일 주소입니다.");
     }
 
-    // --- 1. Google Sheets에 데이터 저장 ---
-    // 시트의 마지막 행에 새로운 데이터를 추가합니다. new Date()는 현재 시간을 기록합니다.
+    // 1. Google Sheets에 데이터 저장
     sheet.appendRow([new Date(), email, protein, goal, description]);
 
-    // --- 2. 사용자에게 결과 이메일 발송 ---
-    // 이메일 제목을 설정합니다.
+    // 2. 사용자에게 발송할 개인화된 이메일 생성
     const subject = "맞춤형 단백질 계산기대로 관리하고 있나요? mealStack";
     
-    // 이메일 본문을 생성합니다. 템플릿 리터럴(``)을 사용하여 변수 값을 쉽게 삽입합니다.
+    // 사용자의 목표(goal)에 따라 추가적인 팁 메시지를 동적으로 생성합니다.
+    const personalizedTip = getPersonalizedTip(goal);
+
     const body = `
 안녕하세요, ${email.split('@')[0]}님! mealStack입니다.
 
@@ -33,6 +29,8 @@ function doPost(e) {
 ✅ 목표: ${description}
 ✅ 일일 권장 단백질: ${protein}g
 
+${personalizedTip}
+
 결과에 맞춰 꾸준히 관리하여 목표를 달성해보세요!
 mealStack이 항상 응원하겠습니다.
 
@@ -40,20 +38,45 @@ mealStack이 항상 응원하겠습니다.
 mealStack 팀 드림
     `;
 
-    // GmailApp 서비스를 사용하여 사용자에게 이메일을 발송합니다.
+    // 3. 이메일 발송
     GmailApp.sendEmail(email, subject, body);
 
-    // 모든 작업이 성공했을 때, 웹사이트에 성공 응답(JSON)을 보냅니다.
     return ContentService
       .createTextOutput(JSON.stringify({ result: "success" }))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
-    // 작업 중 오류가 발생했을 때, 웹사이트에 에러 메시지를 포함한 응답(JSON)을 보냅니다.
     return ContentService
       .createTextOutput(JSON.stringify({ result: "error", message: error.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/**
+ * 사용자의 목표(goal)에 따라 다른 내용의 팁을 반환하는 함수입니다.
+ * @param {string} goal - 사용자가 선택한 체형 목표 (예: 'bulkup', 'cutting')
+ * @returns {string} - 개인화된 팁 메시지 문자열
+ */
+function getPersonalizedTip(goal) {
+  let tip = "--- \n\n✨ MEALSTACK'S TIP FOR YOU ✨\n\n";
+  switch (goal) {
+    case 'bulkup':
+      tip += "성공적인 벌크업을 위해서는 운동 후 30분 내에 단백질과 약간의 탄수화물(바나나 등)을 함께 섭취하는 것이 근육 회복과 성장에 매우 효과적이랍니다.";
+      break;
+    case 'lean_bulkup':
+      tip += "린매스업의 핵심은 '건강한 지방' 섭취입니다. 식단에 아보카도, 견과류, 올리브 오일을 추가하여 칼로리는 채우되 체지방 증가는 최소화해보세요.";
+      break;
+    case 'cutting':
+      tip += "체지방 감량 중 근손실을 막으려면 단백질 섭취가 정말 중요해요. 특히 잠들기 전 '카제인 프로틴'을 섭취하면 수면 중 근육이 분해되는 것을 막아준답니다.";
+      break;
+    case 'maintain':
+      tip += "체중 유지를 위해서는 꾸준함이 중요합니다. 현재 식단에서 단백질 비중을 조금만 더 높이면 포만감이 오래가서 불필요한 간식을 줄이는 데 도움이 될 거예요.";
+      break;
+    default:
+      tip += "꾸준한 단백질 섭취는 건강한 신체를 만드는 가장 기본적인 습관입니다. 작은 실천부터 시작해보세요!";
+      break;
+  }
+  return tip;
 }
 
 /**
@@ -65,7 +88,3 @@ function validateEmail(email) {
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
 }
-
-// mealStack 웹사이트와 연동하여 구독자 정보를 Google Sheets에 저장하고, 사용자에게 계산 결과를 자동으로 이메일로 발송하는 Google Apps Script 전체 코드를 생성.
-// ([확장 프로그램] > [Apps Script])에서 붙여넣고 배포하시면 됩니다.
-// Google Sheets + Apps Script 연동 가이드에 따라 배포 유형은 **웹 앱(Web app)**을 선택해야 합니다.
