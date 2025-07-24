@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mealStack - AI 맞춤 건강 도시락 사전예약</title>
+    <meta
+      name="description"
+      content="AI가 당신의 건강 목표에 맞춰 완벽한 식단을 설계하고 문 앞으로 배송합니다. 1분 영양 분석으로 내게 필요한 맞춤 도시락을 확인하고 사전예약하세요."
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-red: #dc2626;
+        --dark-bg: #1a1a1a;
+        --card-bg: #2d2d2d;
+        --text-light: #f8f9fa;
+        --border-color: #404040;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--dark-bg) 0%, #0f0f0f 100%);
+        color: var(--text-light);
+        font-family: "Arial", sans-serif;
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background: rgba(26, 26, 26, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .brand-logo {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary-red) !important;
+        text-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+      }
+
+      .hero-section {
+        padding: 80px 0;
+        text-align: center;
+      }
+
+      .hero-title {
+        font-size: 3.5rem;
+        font-weight: 900;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, var(--primary-red), #ff4d4d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+        color: #cccccc;
+        margin-bottom: 2rem;
+      }
+
+      .input-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .form-control,
+      .form-select {
+        background: #1a1a1a;
+        border: 2px solid var(--border-color);
+        color: var(--text-light);
+        border-radius: 10px;
+        padding: 12px 16px;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        background: #1a1a1a;
+        border-color: var(--primary-red);
+        color: var(--text-light);
+        box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+      }
+
+      .btn-primary {
+        background: linear-gradient(45deg, var(--primary-red), #ff4d4d);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
+        background: linear-gradient(45deg, #b91c1c, var(--primary-red));
+      }
+
+      .result-card {
+        background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 2rem 0;
+        box-shadow: 0 15px 35px rgba(220, 38, 38, 0.3);
+        display: none;
+      }
+
+      .protein-amount {
+        font-size: 4rem;
+        font-weight: 900;
+        color: white;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        margin-bottom: 0.5rem;
+      }
+
+      .protein-label {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .meal-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+      }
+
+      .meal-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        border-color: var(--primary-red);
+      }
+
+      .meal-title {
+        color: var(--primary-red);
+        font-weight: bold;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+      }
+
+      .food-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .food-item a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .food-item a:hover {
+        text-decoration: underline dotted;
+      }
+
+      .food-item:last-child {
+        border-bottom: none;
+      }
+
+      .protein-badge {
+        background: var(--primary-red);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+      }
+
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin: 4rem 0 2rem 0;
+        color: var(--primary-red);
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        color: var(--primary-red);
+      }
+      
+      .ingredient-tag {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        color: var(--text-light);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-block;
+      }
+      .ingredient-tag:hover {
+        background: var(--primary-red);
+        border-color: var(--primary-red);
+        color: white;
+      }
+
+      .preference-section {
+        background: rgba(45, 45, 45, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+      }
+
+      .preference-checkbox input[type="checkbox"] {
+        display: none;
+      }
+
+      .preference-checkbox label {
+        display: inline-block;
+        background: var(--card-bg);
+        color: var(--text-light);
+        padding: 0.75rem 1.5rem;
+        border: 2px solid var(--border-color);
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .preference-checkbox input[type="checkbox"]:checked + label {
+        background: var(--primary-red);
+        border-color: var(--primary-red);
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .preference-checkbox label:hover {
+        border-color: var(--primary-red);
+        transform: scale(1.02);
+      }
+
+      /* Subscription Section Styles */
+      .subscription-card {
+        background: rgba(45, 45, 45, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 2.5rem;
+        margin-top: 4rem;
+        text-align: center;
+      }
+      .subscription-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+      }
+      .subscription-subtitle {
+        color: #cccccc;
+        margin-bottom: 2rem;
+      }
+      .sns-buttons .btn {
+        margin: 0 0.5rem;
+        font-size: 1.5rem;
+        color: #ccc;
+        transition: all 0.3s ease;
+      }
+      .sns-buttons .btn:hover {
+        color: var(--primary-red);
+        transform: scale(1.1);
+      }
+      #subscriptionSuccessMessage {
+        display: none;
+        color: #28a745;
+        font-weight: bold;
+        margin-top: 1rem;
+      }
+
+      @media (max-width: 768px) {
+        .hero-title {
+          font-size: 2.5rem;
+        }
+        .protein-amount {
+          font-size: 3rem;
+        }
+        .input-card {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand brand-logo" href="#">
+          <i class="fas fa-utensils"></i> mealStack
+        </a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container">
+        <h1 class="hero-title">AI가 설계하는 맞춤 건강 도시락</h1>
+        <p class="hero-subtitle">
+          당신의 건강 목표에 맞춘 완벽한 식단을 문 앞으로 배송해 드립니다. 먼저 내게 필요한 영양을 확인해보세요.
+        </p>
+      </div>
+    </section>
+
+    <!-- Input Section -->
+    <section class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="input-card">
+            <h3 class="text-center mb-4">
+              <i class="fas fa-calculator text-danger"></i> 1분 영양 분석 시작하기
+            </h3>
+
+            <form id="proteinForm">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">몸무게 (kg)</label>
+                  <input type="number" class="form-control" id="weight" min="40" max="150" placeholder="70" required />
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">건강 목표</label>
+                  <select class="form-select" id="goal" required>
+                    <option value="">선택하세요</option>
+                    <option value="bulkup">근력 운동 효과 증진</option>
+                    <option value="lean_bulkup">건강한 체중 관리</option>
+                    <option value="cutting">체지방 집중 감량</option>
+                    <option value="maintain">활력있는 일상 유지</option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">주간 운동 횟수</label>
+                  <select class="form-select" id="activity" required>
+                    <option value="">선택하세요</option>
+                    <option value="low">주 3회 이하</option>
+                    <option value="moderate">주 4-5회</option>
+                    <option value="high">주 6회 이상</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="preference-section">
+                <h5 class="mb-3 text-center">선호하는 단백질 종류 <small class="text-muted d-block">(중복 선택 가능)</small></h5>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                  <div class="preference-checkbox">
+                    <input type="checkbox" id="meat" value="meat" checked /><label for="meat"><i class="fas fa-drumstick-bite"></i> 육류</label>
+                  </div>
+                  <div class="preference-checkbox">
+                    <input type="checkbox" id="seafood" value="seafood" checked /><label for="seafood"><i class="fas fa-fish"></i> 어류/해산물</label>
+                  </div>
+                  <div class="preference-checkbox">
+                    <input type="checkbox" id="plant" value="plant" checked /><label for="plant"><i class="fas fa-leaf"></i> 식물성</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-bolt"></i> 내게 필요한 영양 분석하기
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <div class="container">
+      <div class="loading" id="loading">
+        <i class="fas fa-spinner fa-spin fa-3x text-danger"></i>
+        <p class="mt-3">AI가 맞춤 영양을 분석 중입니다...</p>
+      </div>
+    </div>
+
+    <!-- Result Section Wrapper -->
+    <div id="resultWrapper" style="display: none;">
+        <!-- Result Section -->
+        <section class="container" id="resultSection">
+            <div class="result-card">
+              <div class="protein-amount" id="proteinAmount">0</div>
+              <div class="protein-label">일일 권장 단백질</div>
+              <p class="mt-3 mb-0" id="goalDescription"></p>
+            </div>
+        </section>
+        
+        <!-- Scientific Analysis Card Section -->
+        <section class="container" id="analysisCardSection"></section>
+
+        <!-- Meal Plans Section -->
+        <section class="container" id="mealPlansSection">
+          <h2 class="section-title"><i class="fas fa-utensils"></i> 추천 식단</h2>
+          <div id="mealPlans"></div>
+        </section>
+        
+        <!-- Ingredient List Section -->
+        <section class="container" id="ingredientListSection">
+            <h2 class="section-title"><i class="fas fa-shopping-basket"></i> 추천 식단 재료리스트</h2>
+            <div class="input-card">
+                <p class="text-center text-muted mb-4">아래 재료를 클릭하면 쿠팡에서 바로 구매하실 수 있습니다.</p>
+                <div id="ingredientList" class="d-flex flex-wrap justify-content-center"></div>
+            </div>
+        </section>
+
+        <!-- Subscription Section -->
+        <section class="container" id="subscriptionSection">
+          <div class="subscription-card">
+            <h2 class="subscription-title"><i class="fas fa-paper-plane text-danger"></i> 가장 먼저 소식 받기</h2>
+            <p class="subscription-subtitle">새로운 맞춤 도시락 서비스가 런칭되면 가장 먼저 알려드립니다.</p>
+            <div class="row justify-content-center">
+              <div class="col-lg-7">
+                <form id="subscriptionForm">
+                  <div class="input-group mb-3">
+                    <input type="email" class="form-control" id="emailInput" placeholder="your-email@example.com" required />
+                    <button class="btn btn-primary" type="submit" id="submitButton">
+                      <i class="fas fa-bell"></i> 예약 안내 받아보기
+                    </button>
+                  </div>
+                </form>
+                <div id="subscriptionSuccessMessage">
+                  <i class="fas fa-check-circle"></i> 예약 명단에 등록되었습니다! 런칭 시 가장 먼저 알려드릴게요.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-5 mt-5" style="border-top: 1px solid var(--border-color)">
+      <div class="container">
+        <p class="text-muted">© 2025 mealStack. 건강한 삶을 위한 가장 스마트한 방법.</p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        let lastCalculationResult = null;
+
+        const scientificMealData = {
+          bulkup: { description: "근력 운동 효과 증진", proteinPerKg: 2.2, calorieMultiplier: 1.15, carbRatio: 0.5, proteinRatio: 0.3, fatRatio: 0.2 },
+          lean_bulkup: { description: "건강한 체중 관리", proteinPerKg: 1.9, calorieMultiplier: 1.08, carbRatio: 0.4, proteinRatio: 0.4, fatRatio: 0.2 },
+          cutting: { description: "체지방 집중 감량", proteinPerKg: 2.4, calorieMultiplier: 0.85, carbRatio: 0.3, proteinRatio: 0.5, fatRatio: 0.2 },
+          maintain: { description: "활력있는 일상 유지", proteinPerKg: 1.6, calorieMultiplier: 1.0, carbRatio: 0.5, proteinRatio: 0.3, fatRatio: 0.2 },
+        };
+
+        const mealTemplates = {
+          breakfast: [{ name: "계란", type: "protein", baseAmount: 2, unit: "개" }, { name: "오트밀", type: "carb", baseAmount: 40, unit: "g" }, { name: "아몬드", type: "fat", baseAmount: 10, unit: "g" }],
+          lunch: [{ name: "닭가슴살", type: "protein", baseAmount: 150, unit: "g" }, { name: "현미밥", type: "carb", baseAmount: 100, unit: "g" }, { name: "브로콜리", type: "carb", baseAmount: 80, unit: "g" }, { name: "올리브오일", type: "fat", baseAmount: 5, unit: "ml" }],
+          dinner: [{ name: "연어", type: "protein", baseAmount: 120, unit: "g" }, { name: "고구마", type: "carb", baseAmount: 100, unit: "g" }, { name: "아스파라거스", type: "carb", baseAmount: 80, unit: "g" }],
+          snack: [{ name: "그릭요거트", type: "protein", baseAmount: 100, unit: "g" }, { name: "바나나", type: "carb", baseAmount: 1, unit: "개" }],
+        };
+
+        const foodData = {
+            "계란": { protein: 6.5, carb: 0.5, fat: 5.0, per: 1, unit: "개" }, "오트밀": { protein: 13.5, carb: 60, fat: 6.5, per: 100, unit: "g" }, "아몬드": { protein: 21, carb: 21, fat: 49, per: 100, unit: "g" }, "닭가슴살": { protein: 31, carb: 0, fat: 3.6, per: 100, unit: "g" }, "현미밥": { protein: 7.9, carb: 77, fat: 2.9, per: 100, unit: "g" }, "브로콜리": { protein: 2.8, carb: 7, fat: 0.4, per: 100, unit: "g" }, "올리브오일": { protein: 0, carb: 0, fat: 100, per: 100, unit: "ml" }, "연어": { protein: 25, carb: 0, fat: 15, per: 100, unit: "g" }, "고구마": { protein: 1.6, carb: 20, fat: 0.1, per: 100, unit: "g" }, "아스파라거스": { protein: 2.2, carb: 3.9, fat: 0.1, per: 100, unit: "g" }, "그릭요거트": { protein: 10, carb: 4, fat: 5, per: 100, unit: "g" }, "바나나": { protein: 1.1, carb: 23, fat: 0.3, per: 1, unit: "개" }, "두부": { protein: 8, carb: 1.9, fat: 4.8, per: 100, unit: "g" }, "참치": { protein: 28, carb: 0, fat: 5, per: 100, unit: "g" }
+        };
+
+        document.getElementById("proteinForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            calculateAndDisplay();
+        });
+
+        function calculateAndDisplay() {
+          const weight = parseFloat(document.getElementById("weight").value);
+          const goal = document.getElementById("goal").value;
+          const activity = document.getElementById("activity").value;
+          const preferences = Array.from(document.querySelectorAll('.preference-checkbox input:checked')).map(cb => cb.value);
+
+          if (!weight || !goal || !activity || preferences.length === 0) {
+            alert("모든 필드를 입력하고, 선호 식품을 하나 이상 선택해주세요.");
+            return;
+          }
+
+          document.getElementById("loading").style.display = "block";
+          document.getElementById("resultWrapper").style.display = "none";
+
+          setTimeout(() => {
+            const bmr = 88.362 + (13.397 * weight) + (4.799 * 170) - (5.677 * 25);
+            const activityMultipliers = { low: 1.375, moderate: 1.55, high: 1.725 };
+            const tdee = bmr * activityMultipliers[activity];
+            const goalData = scientificMealData[goal];
+            const targetCalories = Math.round(tdee * goalData.calorieMultiplier);
+            const targetProtein = Math.round(weight * goalData.proteinPerKg);
+            const targetCarbs = Math.round((targetCalories * goalData.carbRatio) / 4);
+            const targetFat = Math.round((targetCalories * goalData.fatRatio) / 9);
+
+            lastCalculationResult = {
+                protein: targetProtein, calories: targetCalories, carbs: targetCarbs, fat: targetFat, goal: goal, description: goalData.description, preferences: preferences
+            };
+
+            const finalMeals = generateFinalMeals(targetProtein, targetCarbs, targetFat, preferences);
+
+            document.getElementById("loading").style.display = "none";
+            displayResults(finalMeals);
+            document.getElementById("resultWrapper").style.display = "block";
+            document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" });
+          }, 1500);
+        }
+        
+        function generateFinalMeals(targetProtein, targetCarbs, targetFat, preferences) {
+            let adaptedTemplate = JSON.parse(JSON.stringify(mealTemplates));
+            if (!preferences.includes('meat')) { const replacement = preferences.includes('seafood') ? '참치' : '두부'; adaptedTemplate.lunch[0].name = replacement; }
+            if (!preferences.includes('seafood')) { const replacement = preferences.includes('meat') ? '닭가슴살' : '두부'; adaptedTemplate.dinner[0].name = replacement; }
+            if (preferences.includes('plant') && !preferences.includes('meat') && !preferences.includes('seafood')) { adaptedTemplate.breakfast[0].name = '두부'; }
+
+            let currentMacros = { protein: 0, carb: 0, fat: 0 };
+            let proteinFoods = [], carbFoods = [], fatFoods = [];
+
+            Object.values(adaptedTemplate).forEach(meal => {
+                meal.forEach(food => {
+                    const foodInfo = foodData[food.name];
+                    if (food.type === 'protein') proteinFoods.push(food);
+                    else if (food.type === 'carb') carbFoods.push(food);
+                    else if (food.type === 'fat') fatFoods.push(food);
+                    
+                    currentMacros.protein += (foodInfo.protein / foodInfo.per) * food.baseAmount;
+                    currentMacros.carb += (foodInfo.carb / foodInfo.per) * food.baseAmount;
+                    currentMacros.fat += (foodInfo.fat / foodInfo.per) * food.baseAmount;
+                });
+            });
+
+            const proteinRatio = targetProtein / currentMacros.protein;
+            const carbRatio = targetCarbs / currentMacros.carb;
+            const fatRatio = targetFat / currentMacros.fat;
+
+            Object.values(adaptedTemplate).forEach(meal => {
+                meal.forEach(food => {
+                    if (food.type === 'protein') food.adjustedAmount = food.baseAmount * proteinRatio;
+                    else if (food.type === 'carb') food.adjustedAmount = food.baseAmount * carbRatio;
+                    else if (food.type === 'fat') food.adjustedAmount = food.baseAmount * fatRatio;
+                });
+            });
+
+            return adaptedTemplate;
+        }
+
+        function displayResults(finalMeals) {
+            document.getElementById("proteinAmount").textContent = lastCalculationResult.protein + "g";
+            document.getElementById("goalDescription").textContent = lastCalculationResult.description;
+            
+            displayAnalysisCard(finalMeals);
+            displayMealPlans(finalMeals);
+            displayIngredientList(finalMeals);
+        }
+
+        function displayAnalysisCard(finalMeals) {
+            const analysisCardDiv = document.getElementById("analysisCardSection");
+            let actualMacros = { protein: 0, carb: 0, fat: 0 };
+            Object.values(finalMeals).forEach(meal => {
+                meal.forEach(food => {
+                    const foodInfo = foodData[food.name];
+                    const amount = Math.max(0, food.adjustedAmount || food.baseAmount);
+                    actualMacros.protein += (foodInfo.protein / foodInfo.per) * amount;
+                    actualMacros.carb += (foodInfo.carb / foodInfo.per) * amount;
+                    actualMacros.fat += (foodInfo.fat / foodInfo.per) * amount;
+                });
+            });
+            const actualCalories = (actualMacros.protein * 4) + (actualMacros.carb * 4) + (actualMacros.fat * 9);
+            const calorieAchievement = Math.round((actualCalories / lastCalculationResult.calories) * 100);
+            const achievementColor = Math.abs(calorieAchievement - 100) <= 7 ? "#28a745" : "#ffc107";
+            const goalData = scientificMealData[lastCalculationResult.goal];
+            const preferenceText = lastCalculationResult.preferences.map(p => p === 'meat' ? '육류' : p === 'seafood' ? '해산물' : '식물성').join(', ');
+
+            let html = `<div class="input-card text-center mb-4" style="border:2px solid var(--primary-red);">
+                <h5 style="color: var(--primary-red); margin-bottom: 1.5rem;">📊 과학적 분석 결과</h5>
+                <div class="row align-items-center">
+                    <div class="col-md-3 mb-3"><strong>목표:</strong><br><span style="color: #fff;">${lastCalculationResult.description}</span></div>
+                    <div class="col-md-3 mb-3"><strong>선호식품:</strong><br><span style="color: #fff;">${preferenceText}</span></div>
+                    <div class="col-md-3 mb-3"><strong>탄단지 비율:</strong><br><span style="color: #fff;">${Math.round(goalData.carbRatio*100)}:${Math.round(goalData.proteinRatio*100)}:${Math.round(goalData.fatRatio*100)}</span></div>
+                    <div class="col-md-3 mb-3"><strong>총 끼니수:</strong><br><span style="color: #fff;">${Object.keys(finalMeals).length}끼</span></div>
+                </div>
+                <hr style="border-color: var(--border-color);">
+                <div class="row" style="font-size: 0.9rem;">
+                    <div class="col-4"><strong>단백질 (g)</strong></div>
+                    <div class="col-4"><strong>탄수화물 (g)</strong></div>
+                    <div class="col-4"><strong>지방 (g)</strong></div>
+                </div>
+                 <div class="row" style="font-size: 1.1rem; font-weight: bold;">
+                    <div class="col-4"><span style="color: #ccc;">목표:</span> ${lastCalculationResult.protein}</div>
+                    <div class="col-4"><span style="color: #ccc;">목표:</span> ${lastCalculationResult.carbs}</div>
+                    <div class="col-4"><span style="color: #ccc;">목표:</span> ${lastCalculationResult.fat}</div>
+                </div>
+                <div class="row" style="font-size: 1.1rem; font-weight: bold;">
+                    <div class="col-4"><span style="color: #fff;">실제:</span> ${actualMacros.protein.toFixed(1)}</div>
+                    <div class="col-4"><span style="color: #fff;">실제:</span> ${actualMacros.carb.toFixed(1)}</div>
+                    <div class="col-4"><span style="color: #fff;">실제:</span> ${actualMacros.fat.toFixed(1)}</div>
+                </div>
+                 <hr style="border-color: var(--border-color);">
+                 <div class="row align-items-center mt-3">
+                    <div class="col-md-6"><strong>총 칼로리 달성률:</strong></div>
+                    <div class="col-md-6"><strong style="font-size: 1.5rem; color: ${achievementColor};">${Math.round(actualCalories)} / ${lastCalculationResult.calories} kcal (${calorieAchievement}%)</strong></div>
+                 </div>
+            </div>`;
+            analysisCardDiv.innerHTML = html;
+        }
+
+        function displayMealPlans(finalMeals) {
+            const mealPlansDiv = document.getElementById("mealPlans");
+            let html = '<div class="row">';
+            for (const [mealType, foods] of Object.entries(finalMeals)) {
+                let mealProtein = 0;
+                let mealHtml = `<div class="col-md-6 mb-4"><div class="meal-card"><h5 class="meal-title">${getMealNameKorean(mealType)}</h5><div class="mb-3">`;
+                foods.forEach(food => {
+                    const foodInfo = foodData[food.name];
+                    const amount = Math.max(0, Math.round(food.adjustedAmount || food.baseAmount));
+                    if (amount === 0) return;
+                    const protein = (foodInfo.protein / foodInfo.per) * amount;
+                    mealProtein += protein;
+                    mealHtml += `<div class="food-item"><span><a href="${getCommerceLink(food.name)}" target="_blank">${food.name}</a> (${amount}${foodInfo.unit})</span><span class="protein-badge">💪 ${protein.toFixed(1)}g</span></div>`;
+                });
+                mealHtml += `</div><div class="text-center" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;"><strong>총 단백질: ${mealProtein.toFixed(1)}g</strong></div></div></div>`;
+                html += mealHtml;
+            }
+            html += '</div>';
+            mealPlansDiv.innerHTML = html;
+        }
+
+        function getMealNameKorean(mealType) {
+            const names = { breakfast: '아침 식단', lunch: '점심 식단', dinner: '저녁 식단', snack: '간식' };
+            return names[mealType] || mealType;
+        }
+
+        function getCommerceLink(foodName) {
+            const coupangBaseUrl = 'https://link.coupang.com/a/YOUR_AFFILIATE_CODE';
+            return `${coupangBaseUrl}?keyword=${encodeURIComponent(foodName)}&subId=mealstack-ingredient`;
+        }
+
+        function displayIngredientList(finalMeals) {
+            const ingredientListDiv = document.getElementById("ingredientList");
+            const ingredients = new Set();
+            Object.values(finalMeals).forEach(meal => {
+                meal.forEach(food => ingredients.add(food.name));
+            });
+            
+            let html = '';
+            ingredients.forEach(ingredient => {
+                html += `<a href="${getCommerceLink(ingredient)}" target="_blank" class="ingredient-tag">${ingredient}</a>`;
+            });
+            ingredientListDiv.innerHTML = html;
+        }
+
+        document.getElementById('subscriptionForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (!lastCalculationResult) {
+              alert('"영양 분석 시작하기"를 먼저 진행해주세요.');
+              return;
+          }
+          const email = document.getElementById('emailInput').value;
+          if (!email) {
+              alert('이메일 주소를 입력해주세요.');
+              return;
+          }
+          const submitButton = document.getElementById('submitButton');
+          submitButton.disabled = true;
+          submitButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 전송 중...`;
+          const payload = { ...lastCalculationResult, email: email };
+          const GAPS_URL = '여기에_배포된_웹_앱_URL을_붙여넣으세요';
+
+          if (GAPS_URL === '여기에_배포된_웹_앱_URL을_붙여넣으세요') {
+              console.warn('Google Apps Script URL이 설정되지 않았습니다. 시뮬레이션 모드로 작동합니다.');
+              setTimeout(() => {
+                  showSubscriptionSuccess();
+                  submitButton.disabled = false;
+                  submitButton.innerHTML = `<i class="fas fa-bell"></i> 예약 안내 받아보기`;
+              }, 1000);
+              return;
+          }
+          
+          fetch(GAPS_URL, {
+              method: 'POST', mode: 'no-cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          })
+          .then(() => { showSubscriptionSuccess(); })
+          .catch(error => { console.error('Error:', error); showSubscriptionSuccess(); })
+          .finally(() => {
+              submitButton.disabled = false;
+              submitButton.innerHTML = `<i class="fas fa-bell"></i> 예약 안내 받아보기`;
+          });
+        });
+
+        function showSubscriptionSuccess() {
+          const successMessage = document.getElementById('subscriptionSuccessMessage');
+          const emailInput = document.getElementById('emailInput');
+          successMessage.style.display = 'block';
+          emailInput.value = '';
+          setTimeout(() => { successMessage.style.display = 'none'; }, 4000);
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            const href = this.getAttribute("href");
+            if (href && href.length > 1) {
+              e.preventDefault();
+              const targetElement = document.querySelector(href);
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: "smooth" });
+              }
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
