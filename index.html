@@ -1156,145 +1156,267 @@
           return adaptedMeals;
         }
 
-        // 목표 칼로리에 맞춰 식단 조정하는 함수
+        // 🎯 정밀 영양소 매칭 알고리즘
         function adjustMealsToTargetCalories(
           baseMeals,
           targetCalories,
-          targetProtein
+          targetProtein,
+          targetCarbs = null,
+          targetFat = null
         ) {
-          // 기본 식단의 총 칼로리 계산
-          let baseTotalCalories = 0;
-          let baseTotalProtein = 0;
+          // 목표 영양소 계산
+          if (!targetCarbs || !targetFat) {
+            const macros = calculateMacros(targetCalories, lastCalculationResult?.goal || 'bulkup');
+            targetCarbs = targetCarbs || macros.carbs;
+            targetFat = targetFat || macros.fat;
+          }
 
+          // 1단계: 기본 식단 비례 확대
+          const adjustedMeals = scaleBaseMeals(baseMeals, targetProtein, targetCalories);
+          
+          // 2단계: 부족한 영양소 정밀 보충
+          const finalMeals = supplementNutrients(adjustedMeals, targetProtein, targetCarbs, targetFat, targetCalories);
+          
+          return finalMeals;
+        }
+
+        // 1단계: 기본 식단을 단백질 기준으로 적절히 확대
+        function scaleBaseMeals(baseMeals, targetProtein, targetCalories) {
+          const adjustedMeals = JSON.parse(JSON.stringify(baseMeals));
+          
+          // 기본 식단 영양소 계산
+          let baseProtein = 0;
+          let baseCalories = 0;
+          
           for (const mealData of Object.values(baseMeals)) {
             for (const food of mealData.foods) {
-              const calories =
-                food.protein * 4 + (food.carb || 0) * 4 + (food.fat || 0) * 9;
-              baseTotalCalories += calories;
-              baseTotalProtein += food.protein;
+              baseProtein += food.protein;
+              baseCalories += (food.protein * 4 + (food.carb || 0) * 4 + (food.fat || 0) * 9);
             }
           }
 
-          // 목표와의 비율 계산
-          const calorieRatio = targetCalories / baseTotalCalories;
-          const proteinRatio = targetProtein / baseTotalProtein;
+          // 단백질과 칼로리를 고려한 적절한 스케일링 비율
+          const proteinRatio = targetProtein / baseProtein;
+          const calorieRatio = targetCalories / baseCalories;
+          
+          // 🚫 단백질 과다 방지: 목표의 120%를 넘지 않도록 제한
+          const maxProteinRatio = (targetProtein * 1.2) / baseProtein;
+          const limitedProteinRatio = Math.min(proteinRatio, maxProteinRatio);
+          
+          // 제한된 단백질 비율과 칼로리 비율의 조화평균 사용
+          const scalingRatio = (2 * limitedProteinRatio * calorieRatio) / (limitedProteinRatio + calorieRatio);
+          const finalRatio = Math.min(scalingRatio, 1.3); // 최대 30% 증량 제한 (더 보수적)
 
-          // 더 높은 비율 사용 (칼로리와 단백질 모두 만족)
-          const adjustmentRatio = Math.max(calorieRatio, proteinRatio);
-
-          // 비율이 1.5 이상이면 간식을 추가하여 끼니 수 늘리기
-          if (adjustmentRatio >= 1.5) {
-            return adjustMealsWithExtraSnacks(
-              baseMeals,
-              targetCalories,
-              targetProtein
-            );
-          }
-
-          // 기본 식단 양 조절
-          const adjustedMeals = JSON.parse(JSON.stringify(baseMeals));
-
+          // 모든 식품에 비례 적용
           for (const mealData of Object.values(adjustedMeals)) {
             for (const food of mealData.foods) {
-              // 양 조절
-              const originalAmount = parseFloat(
-                food.amount.match(/\d+/)?.[0] || 100
-              );
-              const newAmount = Math.round(originalAmount * adjustmentRatio);
+              const originalAmount = parseFloat(food.amount.match(/\d+/)?.[0] || 100);
+              const newAmount = Math.round(originalAmount * finalRatio);
               food.amount = food.amount.replace(/\d+/, newAmount.toString());
 
-              // 영양소 조절
-              food.protein =
-                Math.round(food.protein * adjustmentRatio * 10) / 10;
-              food.carb =
-                Math.round((food.carb || 0) * adjustmentRatio * 10) / 10;
-              food.fat =
-                Math.round((food.fat || 0) * adjustmentRatio * 10) / 10;
+              food.protein = Math.round(food.protein * finalRatio * 10) / 10;
+              food.carb = Math.round((food.carb || 0) * finalRatio * 10) / 10;
+              food.fat = Math.round((food.fat || 0) * finalRatio * 10) / 10;
             }
           }
 
           return adjustedMeals;
         }
 
-        // 끼니 수를 늘려서 목표 칼로리 달성
+        // 2단계: 부족한 영양소를 정밀하게 보충 (단백질 과다 해결)
+        function supplementNutrients(meals, targetProtein, targetCarbs, targetFat, targetCalories) {
+          const adjustedMeals = JSON.parse(JSON.stringify(meals));
+          
+          // 현재 영양소 계산
+          let currentProtein = 0;
+          let currentCarbs = 0;
+          let currentFat = 0;
+          let currentCalories = 0;
+          
+          for (const mealData of Object.values(adjustedMeals)) {
+            for (const food of mealData.foods) {
+              currentProtein += food.protein;
+              currentCarbs += (food.carb || 0);
+              currentFat += (food.fat || 0);
+              currentCalories += (food.protein * 4 + (food.carb || 0) * 4 + (food.fat || 0) * 9);
+            }
+          }
+
+          // 부족분 계산
+          const proteinGap = targetProtein - currentProtein;
+          const carbGap = targetCarbs - currentCarbs;
+          const fatGap = targetFat - currentFat;
+          
+          console.log('영양소 부족분:', {proteinGap, carbGap, fatGap});
+          console.log('현재 단백질:', currentProtein, '목표:', targetProtein);
+
+          // 🎯 단백질 과다 해결 전략
+          const proteinOverage = currentProtein - targetProtein;
+          const isProteinExcessive = proteinOverage > targetProtein * 0.05; // 5% 초과시 과다로 판단
+
+          const supplementFoods = [];
+
+          // 🔥 단백질이 과다인 경우: 탄수화물/지방만 보충하여 균형 맞추기
+          if (isProteinExcessive) {
+            console.log('단백질 과다 감지:', proteinOverage, 'g 초과');
+            
+            // 탄수화물이 부족하면 순수 탄수화물 식품으로 보충
+            if (carbGap > 5) {
+              const carbNeeded = Math.max(carbGap, 0);
+              const riceAmount = Math.round(carbNeeded / 0.72);
+              supplementFoods.push({
+                name: "현미 (탄수화물 보충)",
+                amount: `${riceAmount}g`,
+                protein: Math.round(riceAmount * 0.079),
+                carb: carbNeeded,
+                fat: Math.round(riceAmount * 0.028)
+              });
+            }
+
+            // 지방이 부족하면 순수 지방 식품으로 보충
+            if (fatGap > 2) {
+              const fatNeeded = Math.max(fatGap, 0);
+              const oilAmount = Math.round(fatNeeded / 0.92);
+              supplementFoods.push({
+                name: "올리브오일 (지방 보충)",
+                amount: `${oilAmount}g`,
+                protein: 0,
+                carb: 0,
+                fat: fatNeeded
+              });
+            }
+
+            // 단백질은 절대 더 추가하지 않음
+            console.log('단백질 과다로 인해 단백질 보충 건너뜀');
+            
+          } else {
+            // 🟢 단백질이 적정 수준인 경우: 기존 로직 사용
+            
+            // 단백질 보충 (10% 이상 부족하고, 현재가 목표의 110% 미만일 때만)
+            const proteinOverageLimit = targetProtein * 1.1;
+            if (proteinGap > targetProtein * 0.1 && currentProtein < proteinOverageLimit) {
+              const proteinNeeded = Math.round(Math.max(proteinGap * 0.5, 0));
+              const proteinPowderAmount = Math.round(proteinNeeded / 0.8);
+              
+              if (currentProtein + proteinNeeded <= targetProtein * 1.2) {
+                supplementFoods.push({
+                  name: "웨이 프로틴",
+                  amount: `${proteinPowderAmount}g`,
+                  protein: proteinNeeded,
+                  carb: Math.round(proteinPowderAmount * 0.05),
+                  fat: Math.round(proteinPowderAmount * 0.02)
+                });
+              }
+            }
+
+            // 탄수화물 보충
+            if (carbGap > Math.max(targetCarbs * 0.05, 10)) {
+              const carbNeeded = Math.max(carbGap, 0);
+              const riceAmount = Math.round(carbNeeded / 0.72);
+              supplementFoods.push({
+                name: "현미 추가",
+                amount: `${riceAmount}g`,
+                protein: Math.round(riceAmount * 0.079),
+                carb: carbNeeded,
+                fat: Math.round(riceAmount * 0.028)
+              });
+            }
+
+            // 지방 보충
+            if (fatGap > Math.max(targetFat * 0.05, 3)) {
+              const fatNeeded = Math.max(fatGap, 0);
+              const oilAmount = Math.round(fatNeeded / 0.92);
+              supplementFoods.push({
+                name: "올리브오일 추가",
+                amount: `${oilAmount}g`,
+                protein: 0,
+                carb: 0,
+                fat: fatNeeded
+              });
+            }
+          }
+
+          // 보충 식품이 있으면 추가
+          if (supplementFoods.length > 0) {
+            adjustedMeals.nutrition_supplement = {
+              name: isProteinExcessive ? "균형 조정 보충" : "영양소 정밀 보충",
+              foods: supplementFoods
+            };
+          }
+
+          return adjustedMeals;
+        }
+
+        // 끼니 수를 늘려서 목표 영양소 달성
         function adjustMealsWithExtraSnacks(
           baseMeals,
           targetCalories,
-          targetProtein
+          targetProtein,
+          targetCarbs,
+          targetFat
         ) {
           const adjustedMeals = JSON.parse(JSON.stringify(baseMeals));
 
-          // 기본 식단 1.2배 증량
+          // 기본 식단 적당히 증량 (과도한 증량 방지)
+          const baseMultiplier = 1.2;
           for (const mealData of Object.values(adjustedMeals)) {
             for (const food of mealData.foods) {
               const originalAmount = parseFloat(
                 food.amount.match(/\d+/)?.[0] || 100
               );
-              const newAmount = Math.round(originalAmount * 1.2);
+              const newAmount = Math.round(originalAmount * baseMultiplier);
               food.amount = food.amount.replace(/\d+/, newAmount.toString());
 
-              food.protein = Math.round(food.protein * 1.2 * 10) / 10;
-              food.carb = Math.round((food.carb || 0) * 1.2 * 10) / 10;
-              food.fat = Math.round((food.fat || 0) * 1.2 * 10) / 10;
+              food.protein = Math.round(food.protein * baseMultiplier * 10) / 10;
+              food.carb = Math.round((food.carb || 0) * baseMultiplier * 10) / 10;
+              food.fat = Math.round((food.fat || 0) * baseMultiplier * 10) / 10;
             }
           }
 
-          // 현재 칼로리 재계산
+          // 현재 영양소 재계산
           let currentCalories = 0;
+          let currentProtein = 0;
+          let currentCarbs = 0;
+          let currentFat = 0;
+          
           for (const mealData of Object.values(adjustedMeals)) {
             for (const food of mealData.foods) {
               currentCalories +=
                 food.protein * 4 + (food.carb || 0) * 4 + (food.fat || 0) * 9;
+              currentProtein += food.protein;
+              currentCarbs += (food.carb || 0);
+              currentFat += (food.fat || 0);
             }
           }
 
-          // 부족한 칼로리만큼 간식 추가
-          const remainingCalories = targetCalories - currentCalories;
+          // 🎯 부족분 계산 및 보수적 보충
+          const proteinGap = targetProtein - currentProtein;
+          const carbGap = targetCarbs - currentCarbs;
+          const fatGap = targetFat - currentFat;
 
-          if (remainingCalories > 300) {
-            // 운동 전 간식 추가
-            adjustedMeals.pre_workout = {
-              name: "운동 전 간식 (에너지 충전)",
-              foods: [
-                {
-                  name: "바나나",
-                  amount: "2개",
-                  protein: 2.2,
-                  carb: 46.0,
-                  fat: 0.6,
-                },
-                {
-                  name: "꿀",
-                  amount: "15ml",
-                  protein: 0.1,
-                  carb: 12.0,
-                  fat: 0,
-                },
-              ],
-            };
-          }
-
-          if (remainingCalories > 600) {
-            // 취침 전 간식 추가
-            adjustedMeals.night_snack = {
-              name: "취침 전 간식 (근육 회복)",
-              foods: [
-                {
-                  name: "카제인 프로틴",
-                  amount: "30g",
-                  protein: 24.0,
-                  carb: 2.0,
-                  fat: 1.0,
-                },
-                {
-                  name: "아몬드",
-                  amount: "20g",
-                  protein: 4.0,
-                  carb: 4.0,
-                  fat: 10.0,
-                },
-              ],
-            };
+          // 단백질이 25g 이상 부족하고, 현재가 목표의 110% 미만일 때만 보충
+          const proteinOverageLimit = targetProtein * 1.1;
+          
+          if (proteinGap > 25 && currentProtein < proteinOverageLimit) {
+            // 부족분의 40%만 보충 (더 보수적)
+            const proteinNeeded = Math.round(proteinGap * 0.4);
+            const proteinPowderAmount = Math.round(proteinNeeded / 0.8);
+            
+            // 최종 확인: 보충 후에도 목표의 120%를 넘지 않도록
+            if (currentProtein + proteinNeeded <= targetProtein * 1.2) {
+              adjustedMeals.pre_workout = {
+                name: "단백질 보충 간식",
+                foods: [
+                  {
+                    name: "웨이 프로틴",
+                    amount: `${proteinPowderAmount}g`,
+                    protein: proteinNeeded,
+                    carb: Math.round(proteinPowderAmount * 0.05),
+                    fat: Math.round(proteinPowderAmount * 0.03),
+                  }
+                ],
+              };
+            }
           }
 
           return adjustedMeals;
@@ -1309,6 +1431,8 @@
             snack: "간식",
             pre_workout: "운동 전",
             night_snack: "취침 전",
+            protein_supplement: "단백질 보충",
+            nutrition_supplement: "영양소 보충",
           };
           return mealNames[mealType] || mealType;
         }
@@ -1450,27 +1574,28 @@
           resultSection.style.display = "block";
           resultSection.scrollIntoView({ behavior: "smooth" });
 
-          // 과학적 영양소 분배 표시 (단백질 강조)
+          // 과학적 영양소 분배 표시 (필요량만 표시)
           document.getElementById("nutritionBreakdown").innerHTML = `
             <div class="d-flex justify-content-between mb-4" style="padding: 20px; background: linear-gradient(45deg, var(--primary-red), #ff4d4d); border-radius: 15px; margin-bottom: 25px;">
-              <span style="font-size: 1.4rem; font-weight: bold; color: white;">💪 단백질</span>
-              <span style="background: white; color: var(--primary-red); padding: 8px 16px; border-radius: 20px; font-size: 1.4rem; font-weight: 900; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">${totalProtein}g (체중×${scientificMealData[goal].proteinPerKg})</span>
+              <span style="font-size: 1.4rem; font-weight: bold; color: white;">💪 필요 단백질</span>
+              <span style="background: white; color: var(--primary-red); padding: 8px 16px; border-radius: 20px; font-size: 1.4rem; font-weight: 900; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">${totalProtein}g</span>
             </div>
-            <div class="d-flex justify-content-between mb-2" style="opacity: 0.7;">
-              <span style="font-size: 0.9rem;">일일 칼로리</span>
-              <span class="protein-badge" style="background: #666;">${totalCalories}kcal</span>
+            <div class="d-flex justify-content-between mb-2" style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+              <span style="font-size: 1rem; font-weight: bold;">🔥 필요 칼로리</span>
+              <span class="protein-badge" style="background: #666; font-size: 1rem;">${totalCalories}kcal</span>
             </div>
-            <div class="d-flex justify-content-between mb-2" style="opacity: 0.7;">
-              <span style="font-size: 0.9rem;">탄수화물</span>
-              <span class="protein-badge" style="background: #666;">${macros.carbs}g (${Math.round(
-            scientificMealData[goal].carbRatio * 100
-          )}%)</span>
+            <div class="d-flex justify-content-between mb-2" style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+              <span style="font-size: 1rem; font-weight: bold;">🍚 필요 탄수화물</span>
+              <span class="protein-badge" style="background: #666; font-size: 1rem;">${macros.carbs}g (${Math.round(scientificMealData[goal].carbRatio * 100)}%)</span>
             </div>
-            <div class="d-flex justify-content-between" style="opacity: 0.7;">
-              <span style="font-size: 0.9rem;">지방</span>
-              <span class="protein-badge" style="background: #666;">${macros.fat}g (${Math.round(
-            scientificMealData[goal].fatRatio * 100
-          )}%)</span>
+            <div class="d-flex justify-content-between mb-2" style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+              <span style="font-size: 1rem; font-weight: bold;">🥑 필요 지방</span>
+              <span class="protein-badge" style="background: #666; font-size: 1rem;">${macros.fat}g (${Math.round(scientificMealData[goal].fatRatio * 100)}%)</span>
+            </div>
+            <div style="text-align: center; margin-top: 15px; padding: 10px; background: rgba(220, 38, 38, 0.1); border-radius: 10px; border: 1px solid var(--primary-red);">
+              <span style="color: var(--primary-red); font-weight: bold; font-size: 0.9rem;">
+                🎯 ${getGoalKorean(goal)} 맞춤 필요 영양소
+              </span>
             </div>
           `;
 
@@ -1482,13 +1607,6 @@
             totalCalories,
             macros
           );
-          // 실제 구성된 식단 데이터를 전달
-          const finalMeals = adjustMealsToTargetCalories(
-            adaptMealsByPreference(scientificMealData[goal].meals, preferences),
-            totalCalories,
-            totalProtein
-          );
-          displayIngredientSummary(finalMeals);
         }
 
         function displayScientificMealPlans(
@@ -1507,11 +1625,13 @@
           // 선호도에 따른 식단 조정
           let adaptedMeals = adaptMealsByPreference(baseMeals, preferences);
 
-          // 🔥 목표 칼로리에 맞춰 식단 양 조정 (핵심!)
+          // 🔥 목표 영양소에 맞춰 식단 양 조정 (핵심!)
           adaptedMeals = adjustMealsToTargetCalories(
             adaptedMeals,
             totalCalories,
-            totalProtein
+            totalProtein,
+            macros.carbs,
+            macros.fat
           );
 
           let mealTotalProtein = 0;
@@ -1558,76 +1678,6 @@
           const achievementColor =
             Math.abs(achievementRate - 100) <= 5 ? "#28a745" : "#ffc107";
 
-          html += `<div class="input-card text-center mb-4" style="font-size:1.1rem; font-weight:bold; color:var(--primary-red); border:2px solid var(--primary-red);">
-            <h5 style="color: var(--primary-red); margin-bottom: 1rem;">📊 과학적 분석 결과</h5>
-            <div class="row text-center">
-              <div class="col-md-3 mb-2">
-                <strong>목표:</strong><br>
-                <span style="color: #fff;">${getGoalKorean(goal)}</span>
-              </div>
-              <div class="col-md-3 mb-2">
-                <strong>선호식품:</strong><br>
-                <span style="color: #fff;">${preferenceText}</span>
-              </div>
-              <div class="col-md-3 mb-2">
-                <strong>탄단지 비율:</strong><br>
-                <span style="color: #fff;">${Math.round(
-                  goalData.carbRatio * 100
-                )}:${Math.round(goalData.proteinRatio * 100)}:${Math.round(
-            goalData.fatRatio * 100
-          )}</span>
-              </div>
-              <div class="col-md-3 mb-2">
-                <strong>총 끼니수:</strong><br>
-                <span style="color: #fff;">${
-                  Object.keys(adaptedMeals).length
-                }끼</span>
-              </div>
-            </div>
-            <hr style="border-color: var(--border-color); margin: 1rem 0;">
-            <div class="row text-center">
-              <div class="col-md-4">
-                <strong>목표 칼로리:</strong><br>
-                <span style='font-size:1.4rem; color: var(--primary-red);'>${totalCalories}kcal</span>
-              </div>
-              <div class="col-md-4">
-                <strong>식단 칼로리:</strong><br>
-                <span style='font-size:1.4rem; color: #fff;'>${Math.round(
-                  mealTotalCalories
-                )}kcal</span>
-              </div>
-              <div class="col-md-4">
-                <strong>달성률:</strong><br>
-                <span style='font-size:1.4rem; color: ${achievementColor}; font-weight: bold;'>
-                  ${achievementRate}% ✅
-                </span>
-              </div>
-            </div>
-            <hr style="border-color: var(--border-color); margin: 1rem 0;">
-            <div class="row text-center">
-              <div class="col-md-4">
-                <strong>식단 단백질:</strong><br>
-                <span style='font-size:1.3rem; color: #fff;'>${mealTotalProtein.toFixed(
-                  1
-                )}g</span><br>
-                <small style="color: #ccc;">목표: ${totalProtein}g</small>
-              </div>
-              <div class="col-md-4">
-                <strong>식단 탄수화물:</strong><br>
-                <span style='font-size:1.3rem; color: #fff;'>${mealTotalCarb.toFixed(
-                  1
-                )}g</span><br>
-                <small style="color: #ccc;">목표: ${macros.carbs}g</small>
-              </div>
-              <div class="col-md-4">
-                <strong>식단 지방:</strong><br>
-                <span style='font-size:1.3rem; color: #fff;'>${mealTotalFat.toFixed(
-                  1
-                )}g</span><br>
-                <small style="color: #ccc;">목표: ${macros.fat}g</small>
-              </div>
-            </div>
-          </div>`;
 
           html += '<div class="row">';
           for (const [mealType, mealData] of Object.entries(adaptedMeals)) {
@@ -1684,8 +1734,25 @@
           }
           html += "</div>";
 
+          // 📊 총 영양성분 카드 추가
+          const totalNutritionCardHtml = createTotalNutritionCard(
+            adaptedMeals,
+            totalProtein,
+            macros.carbs,
+            macros.fat,
+            totalCalories
+          );
+          html += totalNutritionCardHtml;
+
+          // 🛒 식재료 쇼핑리스트 추가 (식단 표시 직후에)
+          const shoppingListHtml = displayShoppingList(adaptedMeals);
+          html += shoppingListHtml;
+
           mealPlans.innerHTML = html;
           mealPlansSection.style.display = "block";
+          
+          // 식단 요약 정보 표시
+          displayIngredientSummary(adaptedMeals);
         }
 
         function getDefaultMealTemplate(goal) {
@@ -1770,6 +1837,64 @@
           proteinChartSection.style.display = "block";
         }
 
+        // 식단에서 모든 식재료 추출하는 함수
+        function extractIngredientsFromMeals(meals) {
+          const ingredients = new Map(); // 중복 제거를 위해 Map 사용
+          
+          for (const mealData of Object.values(meals)) {
+            for (const food of mealData.foods) {
+              const foodName = food.name;
+              const amount = food.amount;
+              const protein = food.protein;
+              
+              if (ingredients.has(foodName)) {
+                // 이미 있는 식재료면 양과 단백질 합산
+                const existing = ingredients.get(foodName);
+                const existingAmount = parseFloat(existing.amount.match(/\d+/)?.[0] || 0);
+                const newAmount = parseFloat(amount.match(/\d+/)?.[0] || 0);
+                const totalAmount = existingAmount + newAmount;
+                const unit = amount.match(/[가-힣a-zA-Z]+$/)?.[0] || 'g';
+                
+                ingredients.set(foodName, {
+                  name: foodName,
+                  amount: `${totalAmount}${unit}`,
+                  protein: existing.protein + protein,
+                  category: getCategoryByFood(foodName)
+                });
+              } else {
+                // 새로운 식재료 추가
+                ingredients.set(foodName, {
+                  name: foodName,
+                  amount: amount,
+                  protein: protein,
+                  category: getCategoryByFood(foodName)
+                });
+              }
+            }
+          }
+          
+          return Array.from(ingredients.values()).sort((a, b) => b.protein - a.protein);
+        }
+
+        // 식재료별 카테고리 분류
+        function getCategoryByFood(foodName) {
+          const categories = {
+            '단백질': ['닭가슴살', '소고기', '돼지고기', '연어', '참치', '흰살생선', '계란', '계란흰자', '웨이 프로틴', '카제인 프로틴', '추가 웨이 프로틴'],
+            '탄수화물': ['현미', '현미밥', '통밀빵', '통곡물토스트', '고구마', '바나나', '사과', '오트밀', '퀴노아', '꿀'],
+            '채소': ['브로콜리', '시금치', '양상추', '채소샐러드', '채소믹스', '각종 나물', '셀러리', '베리류'],
+            '유제품': ['우유', '그릭요거트'],
+            '견과류': ['아몬드', '견과류', '아보카도'],
+            '기타': ['올리브오일', '미역국', '두부']
+          };
+          
+          for (const [category, foods] of Object.entries(categories)) {
+            if (foods.includes(foodName)) {
+              return category;
+            }
+          }
+          return '기타';
+        }
+
         function displayIngredientSummary(goal, preferences) {
           const summaryDiv = document.getElementById("ingredientSummary");
           if (!summaryDiv) return;
@@ -1802,9 +1927,358 @@
           summaryDiv.style.display = "block";
         }
 
+        // 식재료 쇼핑 리스트 표시 함수
+        function displayShoppingList(meals) {
+          const ingredients = extractIngredientsFromMeals(meals);
+          const categoryGroups = {};
+          
+          // 카테고리별로 그룹화
+          ingredients.forEach(ingredient => {
+            if (!categoryGroups[ingredient.category]) {
+              categoryGroups[ingredient.category] = [];
+            }
+            categoryGroups[ingredient.category].push(ingredient);
+          });
+
+          let html = `
+            <div class="input-card" style="margin: 2rem 0; background: linear-gradient(135deg, var(--card-bg), rgba(220, 38, 38, 0.05)); border: 2px solid var(--primary-red);">
+              <h4 style="color: var(--primary-red); text-align: center; margin-bottom: 1.5rem;">
+                <i class="fas fa-shopping-cart"></i> 🛒 필요한 식재료 쇼핑리스트
+              </h4>
+              <p style="text-align: center; color: #ccc; margin-bottom: 2rem; font-size: 0.9rem;">
+                아래 식재료들을 클릭하면 쿠팡에서 바로 구매할 수 있습니다!
+              </p>
+          `;
+
+          // 카테고리 순서 정의
+          const categoryOrder = ['단백질', '탄수화물', '채소', '유제품', '견과류', '기타'];
+          const categoryIcons = {
+            '단백질': '🥩',
+            '탄수화물': '🍚', 
+            '채소': '🥬',
+            '유제품': '🥛',
+            '견과류': '🥜',
+            '기타': '🧂'
+          };
+
+          categoryOrder.forEach(category => {
+            if (categoryGroups[category] && categoryGroups[category].length > 0) {
+              html += `
+                <div style="margin-bottom: 2rem;">
+                  <h6 style="color: var(--primary-red); font-weight: bold; margin-bottom: 1rem; font-size: 1.1rem;">
+                    ${categoryIcons[category]} ${category}
+                  </h6>
+                  <div class="row">
+              `;
+
+              categoryGroups[category].forEach(ingredient => {
+                const link = getCommerceLink(ingredient.name);
+                html += `
+                  <div class="col-md-6 col-lg-4 mb-2">
+                    <a href="${link}" target="_blank" style="text-decoration: none;">
+                      <div style="
+                        background: var(--card-bg);
+                        border: 1px solid var(--border-color);
+                        border-radius: 12px;
+                        padding: 12px 15px;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        cursor: pointer;
+                      " onmouseover="this.style.borderColor='var(--primary-red)'; this.style.transform='translateY(-2px)'" 
+                         onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        <div>
+                          <div style="color: var(--text-light); font-weight: bold; font-size: 0.95rem;">
+                            ${ingredient.name}
+                          </div>
+                          <div style="color: #999; font-size: 0.8rem;">
+                            ${ingredient.amount}
+                          </div>
+                        </div>
+                        <div style="
+                          background: linear-gradient(45deg, var(--primary-red), #ff4d4d);
+                          color: white;
+                          padding: 4px 8px;
+                          border-radius: 15px;
+                          font-size: 0.75rem;
+                          font-weight: bold;
+                        ">
+                          💪 ${ingredient.protein.toFixed(1)}g
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                `;
+              });
+
+              html += `
+                  </div>
+                </div>
+              `;
+            }
+          });
+
+          // 총 영양소 요약
+          const totalProtein = ingredients.reduce((sum, ing) => sum + ing.protein, 0);
+          const totalItems = ingredients.length;
+
+          html += `
+            <hr style="border-color: var(--border-color); margin: 2rem 0;">
+            <div style="text-align: center; background: rgba(220, 38, 38, 0.1); border-radius: 15px; padding: 1.5rem;">
+              <div class="row">
+                <div class="col-md-4">
+                  <div style="color: var(--primary-red); font-weight: bold; font-size: 1.1rem;">
+                    📦 총 식재료 수
+                  </div>
+                  <div style="color: #fff; font-size: 1.3rem; font-weight: bold;">
+                    ${totalItems}가지
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div style="color: var(--primary-red); font-weight: bold; font-size: 1.1rem;">
+                    💪 총 단백질
+                  </div>
+                  <div style="color: #fff; font-size: 1.3rem; font-weight: bold;">
+                    ${totalProtein.toFixed(1)}g
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div style="color: var(--primary-red); font-weight: bold; font-size: 1.1rem;">
+                    🛒 예상 쇼핑시간
+                  </div>
+                  <div style="color: #fff; font-size: 1.3rem; font-weight: bold;">
+                    ${Math.ceil(totalItems / 5)}분
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+          `;
+
+          return html;
+        }
+
+        // 총 영양성분 계산 및 카드 생성 함수
+        function createTotalNutritionCard(meals, targetProtein, targetCarbs, targetFat, targetCalories) {
+          // 총 영양소 계산
+          let totalProtein = 0;
+          let totalCarbs = 0;
+          let totalFat = 0;
+          let totalCalories = 0;
+
+          for (const mealData of Object.values(meals)) {
+            for (const food of mealData.foods) {
+              totalProtein += food.protein;
+              totalCarbs += (food.carb || 0);
+              totalFat += (food.fat || 0);
+              totalCalories += (food.protein * 4 + (food.carb || 0) * 4 + (food.fat || 0) * 9);
+            }
+          }
+
+          // 달성률 계산
+          const proteinAchievement = Math.round((totalProtein / targetProtein) * 100);
+          const carbAchievement = Math.round((totalCarbs / targetCarbs) * 100);
+          const fatAchievement = Math.round((totalFat / targetFat) * 100);
+          const calorieAchievement = Math.round((totalCalories / targetCalories) * 100);
+
+          // 달성률에 따른 색상 설정
+          const getAchievementColor = (rate) => {
+            if (rate >= 95 && rate <= 105) return '#28a745'; // 녹색 (완벽)
+            if (rate >= 90 && rate <= 110) return '#17a2b8'; // 파란색 (우수)  
+            if (rate >= 85 && rate <= 115) return '#ffc107'; // 노란색 (양호)
+            return '#dc3545'; // 빨간색 (조정 필요)
+          };
+
+          // 전체 달성률 평균
+          const overallAchievement = Math.round((proteinAchievement + carbAchievement + fatAchievement + calorieAchievement) / 4);
+
+          return `
+            <div class="col-12">
+              <div class="meal-card" style="
+                background: linear-gradient(135deg, var(--card-bg), rgba(220, 38, 38, 0.1));
+                border: 2px solid var(--primary-red);
+                margin-top: 2rem;
+                position: relative;
+                overflow: hidden;
+              ">
+                <div style="
+                  position: absolute;
+                  top: -50%;
+                  right: -50%;
+                  width: 200%;
+                  height: 200%;
+                  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.03), transparent);
+                  transform: rotate(45deg);
+                "></div>
+                
+                <h4 style="
+                  color: var(--primary-red);
+                  text-align: center;
+                  font-size: 1.6rem;
+                  font-weight: bold;
+                  margin-bottom: 1.5rem;
+                  position: relative;
+                  z-index: 2;
+                ">
+                  📊 오늘의 식단 총 영양성분
+                </h4>
+                
+                <div class="row" style="position: relative; z-index: 2;">
+                  <div class="col-md-6 mb-3">
+                    <div style="
+                      background: rgba(255,255,255,0.05);
+                      border-radius: 12px;
+                      padding: 1rem;
+                      text-align: center;
+                    ">
+                      <div style="
+                        background: linear-gradient(45deg, var(--primary-red), #ff4d4d);
+                        color: white;
+                        padding: 12px 20px;
+                        border-radius: 25px;
+                        margin-bottom: 10px;
+                        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+                      ">
+                        <span style="font-size: 1.4rem; font-weight: 900;">💪 ${totalProtein.toFixed(1)}g</span>
+                      </div>
+                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">단백질</div>
+                      <div style="
+                        color: ${getAchievementColor(proteinAchievement)};
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                      ">
+                        필요량 대비 ${proteinAchievement}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6 mb-3">
+                    <div style="
+                      background: rgba(255,255,255,0.05);
+                      border-radius: 12px;
+                      padding: 1rem;
+                      text-align: center;
+                    ">
+                      <div style="
+                        background: ${getAchievementColor(calorieAchievement)};
+                        color: white;
+                        padding: 12px 20px;
+                        border-radius: 25px;
+                        margin-bottom: 10px;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                      ">
+                        <span style="font-size: 1.4rem; font-weight: 900;">🔥 ${Math.round(totalCalories)}kcal</span>
+                      </div>
+                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">칼로리</div>
+                      <div style="
+                        color: ${getAchievementColor(calorieAchievement)};
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                      ">
+                        필요량 대비 ${calorieAchievement}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6 mb-3">
+                    <div style="
+                      background: rgba(255,255,255,0.05);
+                      border-radius: 12px;
+                      padding: 1rem;
+                      text-align: center;
+                    ">
+                      <div style="
+                        background: ${getAchievementColor(carbAchievement)};
+                        color: white;
+                        padding: 12px 20px;
+                        border-radius: 25px;
+                        margin-bottom: 10px;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                      ">
+                        <span style="font-size: 1.2rem; font-weight: 900;">🍚 ${totalCarbs.toFixed(1)}g</span>
+                      </div>
+                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">탄수화물</div>
+                      <div style="
+                        color: ${getAchievementColor(carbAchievement)};
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                      ">
+                        필요량 대비 ${carbAchievement}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6 mb-3">
+                    <div style="
+                      background: rgba(255,255,255,0.05);
+                      border-radius: 12px;
+                      padding: 1rem;
+                      text-align: center;
+                    ">
+                      <div style="
+                        background: ${getAchievementColor(fatAchievement)};
+                        color: white;
+                        padding: 12px 20px;
+                        border-radius: 25px;
+                        margin-bottom: 10px;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                      ">
+                        <span style="font-size: 1.2rem; font-weight: 900;">🥑 ${totalFat.toFixed(1)}g</span>
+                      </div>
+                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">지방</div>
+                      <div style="
+                        color: ${getAchievementColor(fatAchievement)};
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                      ">
+                        필요량 대비 ${fatAchievement}%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+                
+                <div style="
+                  text-align: center;
+                  background: rgba(220, 38, 38, 0.1);
+                  border-radius: 15px;
+                  padding: 1.5rem;
+                  position: relative;
+                  z-index: 2;
+                ">
+                  <div style="
+                    color: var(--primary-red);
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    margin-bottom: 0.5rem;
+                  ">
+                    🎯 전체 영양 균형도
+                  </div>
+                  <div style="
+                    color: ${getAchievementColor(overallAchievement)};
+                    font-size: 2rem;
+                    font-weight: 900;
+                    margin-bottom: 0.5rem;
+                  ">
+                    ${overallAchievement}%
+                  </div>
+                  <div style="color: #ccc; font-size: 0.9rem;">
+                    ${overallAchievement >= 95 && overallAchievement <= 105 ? '🟢 완벽한 영양 균형!' : 
+                      overallAchievement >= 90 && overallAchievement <= 110 ? '🔵 훌륭한 영양 균형!' :
+                      overallAchievement >= 85 && overallAchievement <= 115 ? '🟡 양호한 영양 균형' :
+                      '🔴 영양 균형 조정 필요'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
         function getCommerceLink(foodName) {
           return `https://www.coupang.com/np/search?component=&q=${encodeURIComponent(
-            foodName
+            foodName + ' 식재료'
           )}&channel=user`;
         }
 
