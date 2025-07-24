@@ -197,60 +197,31 @@
         z-index: 1000;
       }
 
-      /* 메인 단백질 카드 - 훨씬 더 강조 */
+      /* 메인 단백질 카드 */
       #mainProteinCard {
-        background: linear-gradient(135deg, var(--primary-red), #ff4d4d, #dc2626) !important;
-        border: 3px solid #fff !important;
-        border-radius: 25px !important;
-        padding: 3rem 2rem !important;
-        margin-top: 2rem;
-        box-shadow: 0 20px 50px rgba(220, 38, 38, 0.6), 0 0 30px rgba(220, 38, 38, 0.3);
-        transition: all 0.4s ease;
+        background: var(--card-bg) !important;
+        border: 1.5px solid var(--border-color) !important;
+        border-radius: 15px !important;
+        padding: 2rem 1.5rem !important;
+        margin-top: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
         cursor: pointer;
-        position: relative;
-        overflow: hidden;
-      }
-      #mainProteinCard::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-        transform: rotate(45deg);
-        transition: all 0.6s ease;
-        opacity: 0;
-      }
-      #mainProteinCard:hover::before {
-        opacity: 1;
-        transform: rotate(45deg) translate(50%, 50%);
       }
       #mainProteinCard:hover,
       #mainProteinCard:active {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: 0 30px 70px rgba(220, 38, 38, 0.8), 0 0 50px rgba(220, 38, 38, 0.5);
-        border-color: #fff !important;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        border-color: var(--primary-red) !important;
       }
       #mainProteinCard .protein-amount {
-        color: #fff !important;
-        text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.4);
-        font-size: 5rem !important;
-        font-weight: 900 !important;
-        animation: pulse 2s infinite;
+        color: var(--primary-red) !important;
+        text-shadow: 0 0 16px rgba(220, 38, 38, 0.25);
       }
       #mainProteinCard .protein-label {
-        color: rgba(255, 255, 255, 0.95) !important;
-        font-weight: 900 !important;
-        letter-spacing: 3px !important;
-        font-size: 1.4rem !important;
-        text-transform: uppercase;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      }
-      
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        color: #fff;
+        font-weight: bold;
+        letter-spacing: 2px;
       }
 
       /* 식품 선호도 체크박스 스타일 */
@@ -397,7 +368,7 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container">
-        <h1 class="hero-title">맞춤형 단백질 식단 계산하기</h1>
+        <h1 class="hero-title">맞춤형 단백질 계산기</h1>
         <p class="hero-subtitle">
           당신의 체형 목표에 맞는 완벽한 단백질 섭취량과 식단을 제공합니다
         </p>
@@ -438,7 +409,7 @@
                   </select>
                 </div>
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">운동 횟수</label>
+                  <label class="form-label">활동 수준</label>
                   <select class="form-select" id="activity" required>
                     <option value="">선택하세요</option>
                     <option value="low">낮음 (주 3회 이하)</option>
@@ -537,29 +508,16 @@
         </div>
 
         <div class="row">
-          <div class="col-12">
-            <div
-              class="input-card"
-              style="
-                border: 2px solid var(--primary-red);
-                background: linear-gradient(
-                  135deg,
-                  var(--card-bg),
-                  rgba(220, 38, 38, 0.1)
-                );
-              "
-            >
-              <h5
-                style="
-                  text-align: center;
-                  color: var(--primary-red);
-                  font-size: 1.5rem;
-                  margin-bottom: 1.5rem;
-                "
-              >
-                <i class="fas fa-chart-pie"></i> 영양소 분배
-              </h5>
-              <div id="nutritionBreakdown" style="text-align: center"></div>
+          <div class="col-md-6">
+            <div class="input-card">
+              <h5><i class="fas fa-chart-pie text-danger"></i> 영양소 분배</h5>
+              <div id="nutritionBreakdown"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="input-card">
+              <h5><i class="fas fa-clock text-danger"></i> 끼니별 영양 배분</h5>
+              <div id="mealBreakdown"></div>
             </div>
           </div>
         </div>
@@ -651,7 +609,7 @@
             carbRatio: 0.6, // 60%
             proteinRatio: 0.3, // 30%
             fatRatio: 0.1, // 10%
-            proteinPerKg: 2.2, // 체중 x 2.0-2.4g (벌크업 최적)
+            proteinPerKg: 2.4, // 체중 x 2.2-2.7g (중간값)
             calorieMultiplier: 1.15, // +15% 칼로리
             meals: {
               breakfast: {
@@ -772,7 +730,7 @@
             carbRatio: 0.5, // 50%
             proteinRatio: 0.3, // 30%
             fatRatio: 0.2, // 20%
-            proteinPerKg: 1.9, // 체중 x 1.8-2.0g (린벌크업 최적)
+            proteinPerKg: 2.1, // 체중 x 2.0-2.2g
             calorieMultiplier: 1.08, // +8% 칼로리
             meals: {
               breakfast: {
@@ -886,7 +844,7 @@
             carbRatio: 0.4, // 40%
             proteinRatio: 0.4, // 40%
             fatRatio: 0.2, // 20%
-            proteinPerKg: 2.4, // 체중 x 2.2-2.6g (컷팅시 근손실 방지)
+            proteinPerKg: 2.8, // 체중 x 2.5-3.3g (중간값)
             calorieMultiplier: 0.85, // -15% 칼로리
             meals: {
               breakfast: {
@@ -993,7 +951,7 @@
             carbRatio: 0.5, // 50%
             proteinRatio: 0.3, // 30%
             fatRatio: 0.2, // 20%
-            proteinPerKg: 1.6, // 체중 x 1.4-1.8g (유지 적정)
+            proteinPerKg: 1.9, // 체중 x 1.8-2.0g
             calorieMultiplier: 1.0, // 유지 칼로리
             meals: {
               breakfast: {
@@ -1450,29 +1408,89 @@
           resultSection.style.display = "block";
           resultSection.scrollIntoView({ behavior: "smooth" });
 
-          // 과학적 영양소 분배 표시 (단백질 강조)
+          // 과학적 영양소 분배 표시
           document.getElementById("nutritionBreakdown").innerHTML = `
-            <div class="d-flex justify-content-between mb-4" style="padding: 20px; background: linear-gradient(45deg, var(--primary-red), #ff4d4d); border-radius: 15px; margin-bottom: 25px;">
-              <span style="font-size: 1.4rem; font-weight: bold; color: white;">💪 단백질</span>
-              <span style="background: white; color: var(--primary-red); padding: 8px 16px; border-radius: 20px; font-size: 1.4rem; font-weight: 900; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">${totalProtein}g (체중×${scientificMealData[goal].proteinPerKg})</span>
+            <div class="d-flex justify-content-between mb-2">
+              <span>일일 칼로리</span>
+              <span class="protein-badge">${totalCalories}kcal</span>
             </div>
-            <div class="d-flex justify-content-between mb-2" style="opacity: 0.7;">
-              <span style="font-size: 0.9rem;">일일 칼로리</span>
-              <span class="protein-badge" style="background: #666;">${totalCalories}kcal</span>
-            </div>
-            <div class="d-flex justify-content-between mb-2" style="opacity: 0.7;">
-              <span style="font-size: 0.9rem;">탄수화물</span>
-              <span class="protein-badge" style="background: #666;">${macros.carbs}g (${Math.round(
+            <div class="d-flex justify-content-between mb-2">
+              <span>탄수화물</span>
+              <span class="protein-badge">${macros.carbs}g (${Math.round(
             scientificMealData[goal].carbRatio * 100
           )}%)</span>
             </div>
-            <div class="d-flex justify-content-between" style="opacity: 0.7;">
-              <span style="font-size: 0.9rem;">지방</span>
-              <span class="protein-badge" style="background: #666;">${macros.fat}g (${Math.round(
+            <div class="d-flex justify-content-between mb-2">
+              <span>단백질</span>
+              <span class="protein-badge">${macros.protein}g (${Math.round(
+            scientificMealData[goal].proteinRatio * 100
+          )}%)</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>지방</span>
+              <span class="protein-badge">${macros.fat}g (${Math.round(
             scientificMealData[goal].fatRatio * 100
           )}%)</span>
             </div>
           `;
+
+          // 식사별 분배 (동적으로 계산)
+          // 먼저 어떤 끼니들이 있는지 확인하고 동적으로 비율 계산
+          const tempAdaptedMeals = adaptMealsByPreference(
+            scientificMealData[goal].meals,
+            preferences
+          );
+          const tempFinalMeals = adjustMealsToTargetCalories(
+            tempAdaptedMeals,
+            totalCalories,
+            totalProtein
+          );
+
+          let mealBreakdownHtml = "";
+          let tempTotalProtein = 0;
+          let tempTotalCalories = 0;
+
+          // 실제 식단의 끼니별 정보 계산
+          for (const [mealType, mealData] of Object.entries(tempFinalMeals)) {
+            const mealProtein = mealData.foods.reduce(
+              (sum, food) => sum + food.protein,
+              0
+            );
+            const mealCalories = mealData.foods.reduce((sum, food) => {
+              return (
+                sum +
+                food.protein * 4 +
+                (food.carb || 0) * 4 +
+                (food.fat || 0) * 9
+              );
+            }, 0);
+
+            tempTotalProtein += mealProtein;
+            tempTotalCalories += mealCalories;
+
+            mealBreakdownHtml += `
+              <div class="d-flex justify-content-between mb-2">
+                <span>${getMealNameKorean(mealType)}</span>
+                <span class="protein-badge">${Math.round(
+                  mealProtein
+                )}g / ${Math.round(mealCalories)}kcal</span>
+              </div>
+            `;
+          }
+
+          // 총계 추가
+          mealBreakdownHtml += `
+            <hr style="border-color: var(--border-color); margin: 0.5rem 0;">
+            <div class="d-flex justify-content-between" style="font-weight: bold; color: var(--primary-red);">
+              <span>총계</span>
+              <span class="protein-badge">${Math.round(
+                tempTotalProtein
+              )}g / ${Math.round(tempTotalCalories)}kcal</span>
+            </div>
+          `;
+
+          document.getElementById("mealBreakdown").innerHTML =
+            mealBreakdownHtml;
 
           // 과학적 기반 식단 표시
           displayScientificMealPlans(
@@ -1656,19 +1674,17 @@
               html += `
                 <div class="food-item">
                   <span><a href="${link}" target="_blank" style="color:inherit; text-decoration:underline dotted;">${food.name}</a> (${food.amount})</span>
-                  <span style="background: linear-gradient(45deg, var(--primary-red), #ff6666); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 900; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); border: 1px solid rgba(255,255,255,0.2);">💪 ${food.protein}g</span>
+                  <span class="protein-badge">${food.protein}g단백질</span>
                 </div>
               `;
             });
             html += `
                   </div>
-                  <div class="text-center" style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(220, 38, 38, 0.1)); padding: 15px; border-radius: 15px; border: 1px solid rgba(220, 38, 38, 0.3);">
-                    <div style="background: linear-gradient(45deg, var(--primary-red), #ff4d4d); color: white; padding: 12px 20px; border-radius: 25px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);">
-                      <span style="font-size: 1.3rem; font-weight: 900;">💪 단백질: ${mealProtein.toFixed(
+                  <div class="text-center" style="background: rgba(220, 38, 38, 0.1); padding: 10px; border-radius: 10px;">
+                    <div style="margin-bottom: 5px;">
+                      <strong style="color: var(--primary-red);">단백질: ${mealProtein.toFixed(
                         1
-                      )}g</span>
-                    </div>
-                    <div style="margin-bottom: 8px; opacity: 0.8; font-size: 0.9rem;">
+                      )}g</strong> | 
                       <span>탄수화물: ${mealCarb.toFixed(1)}g</span> | 
                       <span>지방: ${mealFat.toFixed(1)}g</span>
                     </div>
