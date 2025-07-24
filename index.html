@@ -229,6 +229,33 @@
         margin-top: 1rem;
       }
 
+      /* 메인 단백질 카드: meal-card와 통일성 + 강조 효과 */
+      #mainProteinCard {
+        background: var(--card-bg) !important;
+        border: 1.5px solid var(--border-color) !important;
+        border-radius: 15px !important;
+        padding: 2rem 1.5rem !important;
+        margin-top: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      #mainProteinCard:hover,
+      #mainProteinCard:active {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        border-color: var(--primary-red) !important;
+      }
+      #mainProteinCard .protein-amount {
+        color: var(--primary-red) !important;
+        text-shadow: 0 0 16px rgba(220, 38, 38, 0.25);
+      }
+      #mainProteinCard .protein-label {
+        color: #fff;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+
       @media (max-width: 768px) {
         .hero-title {
           font-size: 2.5rem;
@@ -315,11 +342,22 @@
 
               <div class="text-center">
                 <button type="submit" class="btn btn-primary btn-lg">
-                  <i class="fas fa-bolt"></i> 단백질량 계산하기
+                  <i class="fas fa-bolt"></i>단백질 양 계산하기
                 </button>
               </div>
             </form>
           </div>
+          <!-- 메인 단백질 카드: 입력 폼 바로 아래 -->
+          <div
+            id="mainProteinCard"
+            class="result-card"
+            style="display: none; margin-top: 1.5rem"
+          >
+            <div class="protein-amount" id="mainProteinAmount">0</div>
+            <div class="protein-label">일일 권장 단백질</div>
+          </div>
+          <!-- 오늘의 추천 식재료 요약 리스트 -->
+          <div id="ingredientSummary" style="display: none"></div>
         </div>
       </div>
     </section>
@@ -378,11 +416,12 @@
     <section class="container" id="subscriptionSection">
       <div class="subscription-card">
         <h2 class="subscription-title">
-          <i class="fas fa-envelope-open-text text-danger"></i> 나만의 식단
-          플랜, 정기적으로 받아보기
+          <i class="fas fa-paper-plane text-danger"></i> mealStack 자체 식단
+          패키지 예약 안내
         </h2>
         <p class="subscription-subtitle">
-          이메일을 구독하고 방금 계산한 맞춤 결과를 즉시 받아보세요.
+          주 7~8만원의 하루 3-4끼의 자체 벌크업 식단 패키지를 런칭한다면 관심
+          있으실까요?
         </p>
         <div class="row justify-content-center">
           <div class="col-lg-7">
@@ -396,17 +435,20 @@
                   required
                 />
                 <button class="btn btn-primary" type="submit" id="submitButton">
-                  <i class="fas fa-paper-plane"></i> 내 결과 이메일로 받기
+                  <i class="fas fa-bell"></i> 예약 안내 받아보기
                 </button>
               </div>
             </form>
             <div id="subscriptionSuccessMessage">
-              <i class="fas fa-check-circle"></i> 구독이 완료되었습니다! 결과가 메일로 발송되었습니다.
+              <i class="fas fa-check-circle"></i> 예약 명단에 등록되었습니다!
+              런칭 시 가장 먼저 알려드릴게요.
             </div>
           </div>
         </div>
         <hr class="my-4" style="border-color: var(--border-color)" />
-        <p class="subscription-subtitle">또는 SNS 채널을 팔로우하세요!</p>
+        <p class="subscription-subtitle">
+          또는 SNS 채널을 팔로우하고 소식을 받아보세요!
+        </p>
         <div class="sns-buttons">
           <a href="#" class="btn" aria-label="KakaoTalk Channel"
             ><i class="fas fa-comment"></i
@@ -435,7 +477,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", function() {
+      document.addEventListener("DOMContentLoaded", function () {
         // 계산 결과를 저장할 전역 변수
         let lastCalculationResult = null;
 
@@ -620,6 +662,8 @@
           document.getElementById("resultSection").style.display = "none";
           document.getElementById("mealPlansSection").style.display = "none";
           document.getElementById("proteinChartSection").style.display = "none";
+          document.getElementById("mainProteinCard").style.display = "none"; // 메인 카드 숨김
+          document.getElementById("ingredientSummary").style.display = "none"; // 요약 리스트 숨김
 
           setTimeout(() => {
             const coefficient = proteinCoefficients[goal].recommended;
@@ -628,28 +672,36 @@
 
             document.getElementById("loading").style.display = "none";
             displayResults(totalProtein, goal, weight);
+            document.getElementById("mainProteinCard").style.display = "block"; // 메인 카드 표시
+            document.getElementById("mainProteinAmount").textContent =
+              totalProtein + "g";
           }, 1500);
         }
 
         function displayResults(totalProtein, goal, weight) {
           lastCalculationResult = {
-              protein: totalProtein,
-              goal: goal,
-              description: proteinCoefficients[goal].description,
+            protein: totalProtein,
+            goal: goal,
+            description: proteinCoefficients[goal].description,
           };
 
-          document.getElementById("proteinAmount").textContent = totalProtein + "g";
-          document.getElementById("goalDescription").textContent = proteinCoefficients[goal].description;
+          document.getElementById("proteinAmount").textContent =
+            totalProtein + "g";
+          document.getElementById("goalDescription").textContent =
+            proteinCoefficients[goal].description;
 
           const resultSection = document.getElementById("resultSection");
           resultSection.style.display = "block";
           resultSection.scrollIntoView({ behavior: "smooth" });
 
-          const calories = weight * (goal === "bulkup" ? 45 : goal === "cutting" ? 28 : 35);
+          const calories =
+            weight * (goal === "bulkup" ? 45 : goal === "cutting" ? 28 : 35);
           document.getElementById("nutritionBreakdown").innerHTML = `
                   <div class="d-flex justify-content-between mb-2">
                       <span>일일 칼로리</span>
-                      <span class="protein-badge">${Math.round(calories)}kcal</span>
+                      <span class="protein-badge">${Math.round(
+                        calories
+                      )}kcal</span>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                       <span>단백질</span>
@@ -657,7 +709,9 @@
                   </div>
                   <div class="d-flex justify-content-between">
                       <span>탄수화물</span>
-                      <span class="protein-badge">${Math.round((calories * 0.4) / 4)}g</span>
+                      <span class="protein-badge">${Math.round(
+                        (calories * 0.4) / 4
+                      )}g</span>
                   </div>
               `;
 
@@ -671,10 +725,12 @@
                           </div>
                       `;
           }
-          document.getElementById("mealBreakdown").innerHTML = mealBreakdownHtml;
+          document.getElementById("mealBreakdown").innerHTML =
+            mealBreakdownHtml;
 
           displayMealPlans(goal);
           displayProteinChart();
+          displayIngredientSummary(goal, totalProtein);
         }
 
         function displayMealPlans(goal) {
@@ -704,7 +760,9 @@
             html += `
                                   </div>
                                   <div class="text-center">
-                                      <strong>총 단백질: ${totalProtein.toFixed(1)}g</strong>
+                                      <strong>총 단백질: ${totalProtein.toFixed(
+                                        1
+                                      )}g</strong>
                                   </div>
                               </div>
                           </div>
@@ -717,7 +775,9 @@
 
         function displayProteinChart() {
           const proteinChart = document.getElementById("proteinChart");
-          const proteinChartSection = document.getElementById("proteinChartSection");
+          const proteinChartSection = document.getElementById(
+            "proteinChartSection"
+          );
           let html = "";
           proteinFoods.forEach((food) => {
             html += `
@@ -737,80 +797,148 @@
           proteinChartSection.style.display = "block";
         }
 
-        window.switchLanguage = function() {
-          alert("영어 버전으로 전환합니다!");
+        function displayIngredientSummary(goal, totalProtein) {
+          const ingredientSummaryDiv =
+            document.getElementById("ingredientSummary");
+          const ingredientSummarySection = document.getElementById(
+            "proteinChartSection"
+          ); // 이 섹션 아래에 표시
+
+          let html = "";
+          let remainingProtein = totalProtein;
+
+          // 추천 식단 템플릿에서 사용되는 모든 음식 목록
+          const allFoods = [];
+          for (const [goalType, meals] of Object.entries(mealTemplates)) {
+            for (const [mealType, mealData] of Object.entries(meals)) {
+              allFoods.push(...mealData.foods);
+            }
+          }
+
+          // 중복 제거 및 정렬
+          const uniqueFoods = Array.from(new Set(allFoods.map(JSON.stringify)))
+            .map(JSON.parse)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          // 각 음식에 대해 필요한 단백질 계산
+          uniqueFoods.forEach((food) => {
+            const proteinPerUnit = food.protein;
+            const unitsNeeded = Math.ceil(remainingProtein / proteinPerUnit);
+            if (unitsNeeded > 0) {
+              html += `
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span>${food.name} (${unitsNeeded} ${
+                food.amount.split(" ")[1]
+              })</span>
+                  <span class="protein-badge">${Math.round(
+                    unitsNeeded * proteinPerUnit
+                  )}g</span>
+                </div>
+              `;
+              remainingProtein -= Math.round(unitsNeeded * proteinPerUnit);
+            }
+          });
+
+          if (remainingProtein > 0) {
+            html += `
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span>추가 단백질 보충</span>
+                <span class="protein-badge">${remainingProtein}g</span>
+              </div>
+            `;
+          }
+
+          if (html) {
+            ingredientSummaryDiv.innerHTML = html;
+            ingredientSummaryDiv.style.display = "block";
+            ingredientSummarySection.style.display = "block"; // 요약 리스트가 표시되면 차트 섹션도 표시
+          } else {
+            ingredientSummaryDiv.style.display = "none";
+            ingredientSummarySection.style.display = "none"; // 요약 리스트가 없으면 차트 섹션도 숨김
+          }
         }
 
+        window.switchLanguage = function () {
+          alert("영어 버전으로 전환합니다!");
+        };
+
         // Subscription Form Handling
-        document.getElementById('subscriptionForm').addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          if (!lastCalculationResult) {
+        document
+          .getElementById("subscriptionForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            if (!lastCalculationResult) {
               alert('"계산 시작하기"를 먼저 해보세요.');
               return;
-          }
+            }
 
-          const email = document.getElementById('emailInput').value;
-          const submitButton = document.getElementById('submitButton');
-          
-          if (!email) {
-              alert('이메일 주소를 입력해주세요.');
+            const email = document.getElementById("emailInput").value;
+            const submitButton = document.getElementById("submitButton");
+
+            if (!email) {
+              alert("이메일 주소를 입력해주세요.");
               return;
-          }
+            }
 
-          submitButton.disabled = true;
-          submitButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 전송 중...`;
+            submitButton.disabled = true;
+            submitButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 전송 중...`;
 
-          const payload = {
+            const payload = {
               email: email,
               protein: lastCalculationResult.protein,
               goal: lastCalculationResult.goal,
-              description: lastCalculationResult.description
-          };
+              description: lastCalculationResult.description,
+            };
 
-          const GAPS_URL = 'https://script.google.com/macros/s/AKfycbxiwg8N5PpfDmWSbo9Dd5wszRxtjefQxPFDKoDsG2UIWwB47QkxAeSw02U-IT9hWFC3/exec';  //<==여기에_배포된_웹_앱_URL을_붙여넣으세요 //
+            const GAPS_URL =
+              "https://script.google.com/macros/s/AKfycbyCd5mEK6qTeRAuETWiRawvH2qSRgAPhuy7itkbnlFe-aGjn5irenmJk4ynO47ZKkP7/exec"; //<==여기에_배포된_웹_앱_URL을_붙여넣으세요 //
 
-          if (GAPS_URL === '여기에_배포된_웹_앱_URL을_붙여넣으세요') {
-              console.warn('Google Apps Script URL이 설정되지 않았습니다. 구독 기능을 테스트하기 위해 시뮬레이션 모드로 작동합니다.');
+            if (GAPS_URL === "여기에_배포된_웹_앱_URL을_붙여넣으세요") {
+              console.warn(
+                "Google Apps Script URL이 설정되지 않았습니다. 구독 기능을 테스트하기 위해 시뮬레이션 모드로 작동합니다."
+              );
               setTimeout(() => {
-                  showSubscriptionSuccess();
-                  submitButton.disabled = false;
-                  submitButton.innerHTML = `<i class="fas fa-paper-plane"></i> 내 결과 이메일로 받기`;
+                showSubscriptionSuccess();
+                submitButton.disabled = false;
+                submitButton.innerHTML = `<i class="fas fa-paper-plane"></i> 내 결과 이메일로 받기`;
               }, 1000);
               return;
-          }
-          
-          fetch(GAPS_URL, {
-              method: 'POST',
-              mode: 'no-cors', 
-              cache: 'no-cache',
+            }
+
+            fetch(GAPS_URL, {
+              method: "POST",
+              mode: "no-cors",
+              cache: "no-cache",
               headers: {
-                  'Content-Type': 'application/json'
+                "Content-Type": "application/json",
               },
-              body: JSON.stringify(payload)
-          })
-          .then(() => {
-              showSubscriptionSuccess();
-          })
-          .catch(error => {
-              console.error('Error:', error);
-              showSubscriptionSuccess();
-          })
-          .finally(() => {
-              submitButton.disabled = false;
-              submitButton.innerHTML = `<i class="fas fa-paper-plane"></i> 내 결과 이메일로 받기`;
+              body: JSON.stringify(payload),
+            })
+              .then(() => {
+                showSubscriptionSuccess();
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                showSubscriptionSuccess();
+              })
+              .finally(() => {
+                submitButton.disabled = false;
+                submitButton.innerHTML = `<i class="fas fa-paper-plane"></i> 내 결과 이메일로 받기`;
+              });
           });
-        });
 
         function showSubscriptionSuccess() {
-          const successMessage = document.getElementById('subscriptionSuccessMessage');
-          const emailInput = document.getElementById('emailInput');
-          
-          successMessage.style.display = 'block';
-          emailInput.value = '';
+          const successMessage = document.getElementById(
+            "subscriptionSuccessMessage"
+          );
+          const emailInput = document.getElementById("emailInput");
+
+          successMessage.style.display = "block";
+          emailInput.value = "";
 
           setTimeout(() => {
-              successMessage.style.display = 'none';
+            successMessage.style.display = "none";
           }, 3000);
         }
 
