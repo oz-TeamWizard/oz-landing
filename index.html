@@ -392,6 +392,15 @@
         .capture-section {
           margin: 1rem 0;
         }
+        #submitButton {
+          padding: 10px 16px;
+          font-size: 0.85rem;
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+        }
+        .input-group {
+          flex-wrap: nowrap;
+        }
       }
     </style>
   </head>
@@ -1472,83 +1481,7 @@
             return "🔴";
           };
 
-          return `
-            <div class="input-card" style="margin: 20px 0; border: 2px solid ${getAccuracyColor(
-              accuracyData.overallAccuracy
-            )};">
-              <h4 style="text-align: center; color: ${getAccuracyColor(
-                accuracyData.overallAccuracy
-              )}; margin-bottom: 20px;">
-                ${getAccuracyEmoji(
-                  accuracyData.overallAccuracy
-                )} 영양성분 매칭 정확도
-              </h4>
-              
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(220, 38, 38, 0.05)); border-radius: 10px;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: ${getAccuracyColor(
-                    accuracyData.proteinAccuracy
-                  )};">
-                    ${accuracyData.proteinAccuracy}%
-                  </div>
-                  <div style="font-size: 0.9rem; color: #666;">단백질 정확도</div>
-                  <div style="font-size: 0.8rem; color: #999; margin-top: 5px;">
-                    오차: ${
-                      accuracyData.proteinGap > 0 ? "+" : ""
-                    }${accuracyData.proteinGap}g
-                  </div>
-                </div>
-                
-                <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05)); border-radius: 10px;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: ${getAccuracyColor(
-                    accuracyData.carbAccuracy
-                  )};">
-                    ${accuracyData.carbAccuracy}%
-                  </div>
-                  <div style="font-size: 0.9rem; color: #666;">탄수화물 정확도</div>
-                  <div style="font-size: 0.8rem; color: #999; margin-top: 5px;">
-                    오차: ${
-                      accuracyData.carbGap > 0 ? "+" : ""
-                    }${accuracyData.carbGap}g
-                  </div>
-                </div>
-                
-                <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05)); border-radius: 10px;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: ${getAccuracyColor(
-                    accuracyData.fatAccuracy
-                  )};">
-                    ${accuracyData.fatAccuracy}%
-                  </div>
-                  <div style="font-size: 0.9rem; color: #666;">지방 정확도</div>
-                  <div style="font-size: 0.8rem; color: #999; margin-top: 5px;">
-                    오차: ${
-                      accuracyData.fatGap > 0 ? "+" : ""
-                    }${accuracyData.fatGap}g
-                  </div>
-                </div>
-              </div>
-              
-              <div style="text-align: center; padding: 20px; background: linear-gradient(45deg, ${getAccuracyColor(
-                accuracyData.overallAccuracy
-              )}, ${getAccuracyColor(accuracyData.overallAccuracy)}aa); color: white; border-radius: 15px; font-size: 1.2rem; font-weight: bold;">
-                ${getAccuracyEmoji(
-                  accuracyData.overallAccuracy
-                )} 종합 정확도: ${accuracyData.overallAccuracy}%
-              </div>
-              
-              <div style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: #666;">
-                ${
-                  accuracyData.overallAccuracy >= 95
-                    ? "🎉 완벽한 영양성분 매칭!"
-                    : accuracyData.overallAccuracy >= 90
-                    ? "✨ 우수한 영양성분 매칭!"
-                    : accuracyData.overallAccuracy >= 80
-                    ? "👌 양호한 영양성분 매칭"
-                    : "💪 지속적인 최적화가 진행됩니다"
-                }
-              </div>
-            </div>
-          `;
+          return "";
         }
 
         // 1단계: 기본 식단을 단백질 기준으로 적절히 확대
@@ -2469,200 +2402,7 @@
               4
           );
 
-          return `
-            <div class="col-12">
-              <div class="meal-card" style="
-                background: linear-gradient(135deg, var(--card-bg), rgba(220, 38, 38, 0.1));
-                border: 2px solid var(--primary-red);
-                margin-top: 2rem;
-                position: relative;
-                overflow: hidden;
-              ">
-                <div style="
-                  position: absolute;
-                  top: -50%;
-                  right: -50%;
-                  width: 200%;
-                  height: 200%;
-                  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.03), transparent);
-                  transform: rotate(45deg);
-                "></div>
-                
-                <h4 style="
-                  color: var(--primary-red);
-                  text-align: center;
-                  font-size: 1.6rem;
-                  font-weight: bold;
-                  margin-bottom: 1.5rem;
-                  position: relative;
-                  z-index: 2;
-                ">
-                  📊 오늘의 식단 총 영양성분
-                </h4>
-                
-                <div class="row" style="position: relative; z-index: 2;">
-                  <div class="col-md-6 mb-3">
-                    <div style="
-                      background: rgba(255,255,255,0.05);
-                      border-radius: 12px;
-                      padding: 1rem;
-                      text-align: center;
-                    ">
-                      <div style="
-                        background: linear-gradient(45deg, var(--primary-red), #ff4d4d);
-                        color: white;
-                        padding: 12px 20px;
-                        border-radius: 25px;
-                        margin-bottom: 10px;
-                        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
-                      ">
-                        <span style="font-size: 1.4rem; font-weight: 900;">💪 ${totalProtein.toFixed(
-                          1
-                        )}g</span>
-                      </div>
-                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">단백질</div>
-                      <div style="
-                        color: ${getAchievementColor(proteinAchievement)};
-                        font-weight: bold;
-                        font-size: 0.9rem;
-                      ">
-                        필요량 대비 ${proteinAchievement}%
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6 mb-3">
-                    <div style="
-                      background: rgba(255,255,255,0.05);
-                      border-radius: 12px;
-                      padding: 1rem;
-                      text-align: center;
-                    ">
-                      <div style="
-                        background: ${getAchievementColor(calorieAchievement)};
-                        color: white;
-                        padding: 12px 20px;
-                        border-radius: 25px;
-                        margin-bottom: 10px;
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                      ">
-                        <span style="font-size: 1.4rem; font-weight: 900;">🔥 ${Math.round(
-                          totalCalories
-                        )}kcal</span>
-                      </div>
-                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">칼로리</div>
-                      <div style="
-                        color: ${getAchievementColor(calorieAchievement)};
-                        font-weight: bold;
-                        font-size: 0.9rem;
-                      ">
-                        필요량 대비 ${calorieAchievement}%
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6 mb-3">
-                    <div style="
-                      background: rgba(255,255,255,0.05);
-                      border-radius: 12px;
-                      padding: 1rem;
-                      text-align: center;
-                    ">
-                      <div style="
-                        background: ${getAchievementColor(carbAchievement)};
-                        color: white;
-                        padding: 12px 20px;
-                        border-radius: 25px;
-                        margin-bottom: 10px;
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                      ">
-                        <span style="font-size: 1.2rem; font-weight: 900;">🍚 ${totalCarbs.toFixed(
-                          1
-                        )}g</span>
-                      </div>
-                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">탄수화물</div>
-                      <div style="
-                        color: ${getAchievementColor(carbAchievement)};
-                        font-weight: bold;
-                        font-size: 0.9rem;
-                      ">
-                        필요량 대비 ${carbAchievement}%
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6 mb-3">
-                    <div style="
-                      background: rgba(255,255,255,0.05);
-                      border-radius: 12px;
-                      padding: 1rem;
-                      text-align: center;
-                    ">
-                      <div style="
-                        background: ${getAchievementColor(fatAchievement)};
-                        color: white;
-                        padding: 12px 20px;
-                        border-radius: 25px;
-                        margin-bottom: 10px;
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                      ">
-                        <span style="font-size: 1.2rem; font-weight: 900;">🥑 ${totalFat.toFixed(
-                          1
-                        )}g</span>
-                      </div>
-                      <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">지방</div>
-                      <div style="
-                        color: ${getAchievementColor(fatAchievement)};
-                        font-weight: bold;
-                        font-size: 0.9rem;
-                      ">
-                        필요량 대비 ${fatAchievement}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
-                
-                <div style="
-                  text-align: center;
-                  background: rgba(220, 38, 38, 0.1);
-                  border-radius: 15px;
-                  padding: 1.5rem;
-                  position: relative;
-                  z-index: 2;
-                ">
-                  <div style="
-                    color: var(--primary-red);
-                    font-size: 1.2rem;
-                    font-weight: bold;
-                    margin-bottom: 0.5rem;
-                  ">
-                    🎯 전체 영양 균형도
-                  </div>
-                  <div style="
-                    color: ${getAchievementColor(overallAchievement)};
-                    font-size: 2rem;
-                    font-weight: 900;
-                    margin-bottom: 0.5rem;
-                  ">
-                    ${overallAchievement}%
-                  </div>
-                  <div style="color: #ccc; font-size: 0.9rem;">
-                    ${
-                      overallAchievement >= 95 && overallAchievement <= 105
-                        ? "🟢 완벽한 영양 균형!"
-                        : overallAchievement >= 90 && overallAchievement <= 110
-                        ? "🔵 훌륭한 영양 균형!"
-                        : overallAchievement >= 85 && overallAchievement <= 115
-                        ? "🟡 양호한 영양 균형"
-                        : "🔴 영양 균형 조정 필요"
-                    }
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
+          return "";
         }
 
         function getCommerceLink(foodName) {
