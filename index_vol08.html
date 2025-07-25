@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Chosen Palette: "Power Red & Night Ops" - A high-contrast theme using a dominant black/dark gray background (#1a1a1a, #2d2d2d), an energetic and motivational primary red (#dc2626), and clean white/light gray text (#f8f9fa) for clarity and impact, tailored to a fitness-oriented audience. -->
+    <!-- Application Structure Plan: The application employs a linear, funnel-based user journey designed for maximum engagement and conversion. It starts with a low-friction three-field input form to capture essential user data (weight, goal, activity). This leads to an animated loading state that builds anticipation before revealing the primary result—the daily protein target—in a visually impactful card. The user is then guided sequentially through increasingly detailed information: a full macronutrient breakdown, the actionable daily meal plan, a helpful shopping list with affiliate link potential, and finally, a clear call-to-action for a related physical product. This progressive disclosure of information prevents overwhelm and systematically builds user investment, making the final conversion request more effective. The structure was chosen to transform a simple calculator into a compelling, story-driven experience that guides the user from initial curiosity to a high-value outcome and a potential business lead. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: User's calculated daily protein, calories, carbs, and fat. Goal: Inform/Impact. Viz/Method: Large, animated numerical display in a styled "result-card" (#mainProteinCard). Interaction: Subtle pulsing and scaling on hover. Justification: Creates a "wow" moment, making the primary result feel significant and rewarding. Library: HTML/CSS animations.
+        - Report Info: Full macronutrient breakdown (P/C/F). Goal: Compare/Inform. Viz/Method: Structured HTML list with clear labels and styled badges. Interaction: Static display. Justification: Provides a clear, easily scannable summary of all key nutritional targets, offering necessary detail without complexity. Library: HTML/CSS.
+        - Report Info: Complete daily meal plan. Goal: Organize/Action. Viz/Method: A series of "meal-card" components, organized by mealtime (breakfast, lunch, etc.), listing specific foods and quantities. Interaction: Hyperlinks on food items to an e-commerce site. Justification: Translates abstract data into a concrete, actionable plan. The external links add immediate utility, bridging the gap from planning to execution. Library: HTML/CSS.
+        - Report Info: Aggregated list of all ingredients. Goal: Organize/Action. Viz/Method: A categorized "shopping list" card that groups all necessary ingredients. Interaction: Hyperlinks on each ingredient. Justification: Solves the user's next logical problem ("What do I need to buy?"), significantly increasing the tool's practical value and stickiness. Library: HTML/CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mealStack - 맞춤형 단백질 계산기</title>
+    <meta
+      name="description"
+      content="당신의 체형 목표에 맞는 완벽한 단백질 섭취량과 식단을 제공합니다. 벌크업, 린벌크업, 컷팅, 유지 목적별 맞춤 식단 계산기"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+      :root {
+        --primary-red: #dc2626;
+        --dark-bg: #111111;
+        --card-bg: rgba(38, 38, 38, 0.6);
+        --text-light: #f0f0f0;
+        --border-color: rgba(255, 255, 255, 0.1);
+      }
+      body {
+        background-color: var(--dark-bg);
+        background-image: radial-gradient(circle at 10% 10%, rgba(220, 38, 38, 0.1) 0%, transparent 40%),
+                          radial-gradient(circle at 90% 80%, rgba(220, 38, 38, 0.08) 0%, transparent 50%);
+        color: var(--text-light);
+        font-family: "Inter", "Pretendard", sans-serif;
+      }
+      .navbar {
+        background: rgba(17, 17, 17, 0.75) !important;
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+      }
+      .hero-title {
+        background: linear-gradient(45deg, #ef4444, #f87171);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+      }
+       .hero-subtitle {
+        color: #a0a0a0;
+      }
+      .input-card, .meal-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 1.25rem;
+        backdrop-filter: blur(12px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      }
+       .meal-card:hover, .input-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(220, 38, 38, 0.5);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(220, 38, 38, 0.2);
+      }
+      .btn-primary {
+        background: linear-gradient(45deg, var(--primary-red), #ef4444);
+        border: none;
+        border-radius: 9999px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .btn-primary:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4), 0 0 25px rgba(239, 68, 68, 0.3);
+      }
+      .form-control, .form-select {
+        background-color: rgba(17, 17, 17, 0.8);
+        color: var(--text-light);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+        padding: 0.9rem 1rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+      .form-control:focus, .form-select:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
+        background-color: rgba(17, 17, 17, 0.9);
+        color: var(--text-light);
+      }
+      #mainProteinCard {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        border: 2px solid rgba(255, 255, 255, 0.8) !important;
+        box-shadow: 0 20px 50px rgba(220, 38, 38, 0.5), 0 0 30px rgba(220, 38, 38, 0.3);
+        animation: pulse 2.5s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 20px 50px rgba(220, 38, 38, 0.5), 0 0 30px rgba(220, 38, 38, 0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 25px 60px rgba(239, 68, 68, 0.6), 0 0 45px rgba(239, 68, 68, 0.4); }
+      }
+      .preference-label.selected {
+        background: var(--primary-red);
+        border-color: var(--primary-red);
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+      }
+       .preference-label {
+        transition: all 0.3s ease;
+      }
+    </style>
+  </head>
+  <body class="bg-dark-bg text-text-light">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand text-2xl font-bold text-primary-red" href="#">
+          <i class="fas fa-dumbbell"></i> mealStack
+        </a>
+      </div>
+    </nav>
+
+    <section class="text-center py-20">
+      <div class="container">
+        <h1 class="hero-title text-6xl font-black mb-4">맞춤형 단백질 식단 계산기</h1>
+        <p class="hero-subtitle text-lg mb-8">
+          당신의 체형 목표에 맞는 완벽한 단백질 섭취량과 식단을 제공합니다
+        </p>
+      </div>
+    </section>
+
+    <section class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="input-card p-8 mb-8 shadow-lg">
+            <h3 class="text-center mb-4 text-xl"><i class="fas fa-calculator text-danger"></i> 계산 시작하기</h3>
+            <form id="proteinForm">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">몸무게 (kg)</label>
+                  <input type="number" class="form-control" id="weight" min="40" max="150" placeholder="70" required />
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">체형 목표</label>
+                  <select class="form-select" id="goal" required>
+                    <option value="">선택하세요</option>
+                    <option value="bulkup">벌크업 (근육 증가)</option>
+                    <option value="lean_bulkup">린벌크업 (깔끔한 증량)</option>
+                    <option value="cutting">컷팅 (체지방 감소)</option>
+                    <option value="maintain">유지 (현상 유지)</option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">운동 횟수</label>
+                  <select class="form-select" id="activity" required>
+                    <option value="">선택하세요</option>
+                    <option value="low">낮음 (주 3회 이하)</option>
+                    <option value="moderate">보통 (주 4-5회)</option>
+                    <option value="high">높음 (주 6회 이상)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="p-4 my-4 rounded-xl" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);">
+                <h5 class="mb-3 text-center">선호하는 식품 종류 <small class="text-gray-400 block">(중복 선택 가능)</small></h5>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <label data-value="meat" class="preference-label selected inline-block bg-card-bg text-text-light px-6 py-3 border-2 border-border-color rounded-full cursor-pointer font-medium whitespace-nowrap"><i class="fas fa-drumstick-bite"></i> 육류</label>
+                    <label data-value="seafood" class="preference-label selected inline-block bg-card-bg text-text-light px-6 py-3 border-2 border-border-color rounded-full cursor-pointer font-medium whitespace-nowrap"><i class="fas fa-fish"></i> 어류/해산물</label>
+                    <label data-value="plant" class="preference-label selected inline-block bg-card-bg text-text-light px-6 py-3 border-2 border-border-color rounded-full cursor-pointer font-medium whitespace-nowrap"><i class="fas fa-leaf"></i> 식물성</label>
+                </div>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg font-bold uppercase tracking-wider py-3 px-8">
+                  <i class="fas fa-bolt"></i> 단백질 양 계산하기
+                </button>
+              </div>
+            </form>
+          </div>
+          <div id="mainProteinCard" class="text-center rounded-3xl p-8 my-6" style="display: none;">
+            <div class="text-7xl font-black text-white" id="mainProteinAmount" style="text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);">0</div>
+            <div class="text-xl font-bold uppercase tracking-widest text-white/90 mt-2">일일 권장 단백질</div>
+          </div>
+          <div class="text-center my-8" id="captureSection" style="display: none">
+            <button class="btn-primary font-bold uppercase tracking-wider py-3 px-6 m-2" onclick="captureResult()">
+              <i class="fas fa-camera"></i> 📋 식단표 이미지로 저장
+            </button>
+            <button class="btn-primary font-bold uppercase tracking-wider py-3 px-6 m-2" onclick="shareResult()">
+              <i class="fas fa-share"></i> 결과 공유하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="text-center my-8" id="loading" style="display: none;">
+        <i class="fas fa-spinner fa-spin fa-3x text-danger"></i>
+        <p class="mt-3">최적의 식단을 계산 중입니다...</p>
+      </div>
+    </div>
+
+    <section class="container" id="resultSectionWrapper" style="display: none">
+        <div id="resultSection" class="input-card p-8 mb-8 shadow-lg">
+             <h5 class="text-center text-primary-red text-2xl mb-6 font-bold"><i class="fas fa-chart-pie"></i> 목표 영양소</h5>
+             <div id="goalDescription" class="text-center text-gray-400 mb-6"></div>
+             <div id="nutritionBreakdown" class="text-center"></div>
+        </div>
+    </section>
+
+    <section class="container" id="mealPlansSection" style="display: none">
+      <h2 class="text-4xl font-bold text-center my-12 text-primary-red"><i class="fas fa-utensils"></i> 추천 식단</h2>
+      <div id="mealPlans"></div>
+    </section>
+
+    <footer class="text-center py-5 mt-5" style="border-top: 1px solid var(--border-color)">
+      <div class="container">
+        <p class="text-gray-500">
+          © 2025 mealStack. 건강한 단백질 라이프를 시작하세요.
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let lastCalculationResult = null;
+
+        document.querySelectorAll('.preference-label').forEach(label => {
+            label.addEventListener('click', () => {
+                label.classList.toggle('selected');
+            });
+        });
+
+        const scientificMealData = {
+            bulkup: { description: "근육량 증가를 위한 고단백 식단", proteinPerKg: 2.2, calorieMultiplier: 1.15, carbRatio: 0.6, proteinRatio: 0.3, fatRatio: 0.1, meals: { breakfast: { name: "벌크업 아침", foods: [{ name: "계란", category: "meat", amount: "3개", protein: 19.5, carb: 1.5, fat: 15.0, baseAmount: 3, unit: "개" }, { name: "현미밥", amount: "80g", protein: 6.3, carb: 58.0, fat: 2.2, baseAmount: 80, unit: "g" }, { name: "바나나", amount: "1개", protein: 1.1, carb: 23.0, fat: 0.3, baseAmount: 1, unit: "개" }, { name: "견과류", amount: "20g", protein: 4.0, carb: 4.0, fat: 12.0, baseAmount: 20, unit: "g" }] }, lunch: { name: "벌크업 점심", foods: [{ name: "닭가슴살", category: "meat", amount: "200g", protein: 62.0, carb: 0, fat: 2.0, baseAmount: 200, unit: "g" }, { name: "현미밥", amount: "120g", protein: 9.5, carb: 87.0, fat: 3.3, baseAmount: 120, unit: "g" }, { name: "브로콜리", amount: "100g", protein: 2.8, carb: 7.0, fat: 0.4, baseAmount: 100, unit: "g" }, { name: "올리브오일", amount: "10g", protein: 0, carb: 0, fat: 10.0, baseAmount: 10, unit: "g" }] }, dinner: { name: "벌크업 저녁", foods: [{ name: "연어", category: "seafood", amount: "180g", protein: 45.0, carb: 0, fat: 24.0, baseAmount: 180, unit: "g" }, { name: "고구마", amount: "150g", protein: 3.0, carb: 30.0, fat: 0.2, baseAmount: 150, unit: "g" }, { name: "시금치", amount: "100g", protein: 2.9, carb: 2.0, fat: 0.4, baseAmount: 100, unit: "g" }] }, snack: { name: "벌크업 간식", foods: [{ name: "웨이 프로틴", category: "plant", amount: "35g", protein: 28.0, carb: 3.0, fat: 1.5, baseAmount: 35, unit: "g" }, { name: "오트밀", amount: "40g", protein: 5.4, carb: 24.0, fat: 2.4, baseAmount: 40, unit: "g" }] } } },
+            lean_bulkup: { description: "체지방 증가 최소화하며 근육량 증가", proteinPerKg: 1.9, calorieMultiplier: 1.08, carbRatio: 0.5, proteinRatio: 0.3, fatRatio: 0.2, meals: { breakfast: { name: "린벌크업 아침", foods: [{ name: "계란흰자", category: "meat", amount: "4개", protein: 14.0, carb: 0.8, fat: 0.2, baseAmount: 4, unit: "개" }, { name: "통밀빵", amount: "2장", protein: 6.0, carb: 24.0, fat: 2.0, baseAmount: 2, unit: "장" }, { name: "아보카도", amount: "50g", protein: 1.0, carb: 4.0, fat: 7.5, baseAmount: 50, unit: "g" }] }, lunch: { name: "린벌크업 점심", foods: [{ name: "닭가슴살", category: "meat", amount: "180g", protein: 55.8, carb: 0, fat: 1.8, baseAmount: 180, unit: "g" }, { name: "퀴노아", category: "plant", amount: "70g", protein: 9.9, carb: 40.0, fat: 4.2, baseAmount: 70, unit: "g" }, { name: "채소샐러드", amount: "150g", protein: 3.0, carb: 8.0, fat: 0.3, baseAmount: 150, unit: "g" }] }, dinner: { name: "린벌크업 저녁", foods: [{ name: "흰살생선", category: "seafood", amount: "160g", protein: 35.2, carb: 0, fat: 1.6, baseAmount: 160, unit: "g" }, { name: "현미밥", amount: "60g", protein: 4.7, carb: 43.5, fat: 1.7, baseAmount: 60, unit: "g" }, { name: "브로콜리", amount: "120g", protein: 3.4, carb: 8.4, fat: 0.5, baseAmount: 120, unit: "g" }] }, snack: { name: "린벌크업 간식", foods: [{ name: "그릭요거트", category: "plant", amount: "150g", protein: 15.0, carb: 9.0, fat: 0.75, baseAmount: 150, unit: "g" }, { name: "베리류", amount: "80g", protein: 0.6, carb: 12.0, fat: 0.2, baseAmount: 80, unit: "g" }] } } },
+            cutting: { description: "근육량 보존하며 체지방 감소", proteinPerKg: 2.4, calorieMultiplier: 0.85, carbRatio: 0.4, proteinRatio: 0.4, fatRatio: 0.2, meals: { breakfast: { name: "컷팅 아침", foods: [{ name: "계란흰자", category: "meat", amount: "5개", protein: 17.5, carb: 1.0, fat: 0.25, baseAmount: 5, unit: "개" }, { name: "오트밀", amount: "30g", protein: 4.0, carb: 18.0, fat: 1.8, baseAmount: 30, unit: "g" }, { name: "시금치", amount: "100g", protein: 2.9, carb: 2.0, fat: 0.4, baseAmount: 100, unit: "g" }] }, lunch: { name: "컷팅 점심", foods: [{ name: "닭가슴살", category: "meat", amount: "200g", protein: 62.0, carb: 0, fat: 2.0, baseAmount: 200, unit: "g" }, { name: "현미밥", amount: "40g", protein: 3.2, carb: 29.0, fat: 1.1, baseAmount: 40, unit: "g" }, { name: "채소믹스", amount: "200g", protein: 4.0, carb: 10.0, fat: 0.4, baseAmount: 200, unit: "g" }] }, dinner: { name: "컷팅 저녁", foods: [{ name: "흰살생선", category: "seafood", amount: "180g", protein: 39.6, carb: 0, fat: 1.8, baseAmount: 180, unit: "g" }, { name: "브로콜리", amount: "200g", protein: 5.6, carb: 14.0, fat: 0.8, baseAmount: 200, unit: "g" }] }, snack: { name: "컷팅 간식", foods: [{ name: "카제인 프로틴", category: "plant", amount: "30g", protein: 24.0, carb: 2.0, fat: 1.0, baseAmount: 30, unit: "g" }] } } },
+            maintain: { description: "현재 체형 및 건강 유지", proteinPerKg: 1.6, calorieMultiplier: 1.0, carbRatio: 0.5, proteinRatio: 0.3, fatRatio: 0.2, meals: { breakfast: { name: "유지 아침", foods: [{ name: "계란", category: "meat", amount: "2개", protein: 13.0, carb: 1.0, fat: 10.0, baseAmount: 2, unit: "개" }, { name: "통밀빵", amount: "2장", protein: 6.0, carb: 24.0, fat: 2.0, baseAmount: 2, unit: "장" }, { name: "아몬드", amount: "15g", protein: 3.0, carb: 3.0, fat: 7.5, baseAmount: 15, unit: "g" }] }, lunch: { name: "유지 점심", foods: [{ name: "닭가슴살", category: "meat", amount: "150g", protein: 46.5, carb: 0, fat: 1.5, baseAmount: 150, unit: "g" }, { name: "현미밥", amount: "80g", protein: 6.3, carb: 58.0, fat: 2.2, baseAmount: 80, unit: "g" }, { name: "채소샐러드", amount: "120g", protein: 3.0, carb: 8.0, fat: 0.5, baseAmount: 120, unit: "g" }] }, dinner: { name: "유지 저녁", foods: [{ name: "두부", category: "plant", amount: "150g", protein: 12.0, carb: 4.5, fat: 6.0, baseAmount: 150, unit: "g" }, { name: "현미밥", amount: "60g", protein: 4.7, carb: 43.5, fat: 1.7, baseAmount: 60, unit: "g" }] }, snack: { name: "유지 간식", foods: [{ name: "그릭요거트", category: "plant", amount: "100g", protein: 10.0, carb: 6.0, fat: 0.5, baseAmount: 100, unit: "g" }, { name: "사과", amount: "0.5개", protein: 0.3, carb: 13.0, fat: 0.2, baseAmount: 0.5, unit: "개" }] } } }
+        };
+
+        function getPrimaryNutrient(foodName) {
+            const proteinFoods = ['닭가슴살', '소고기', '돼지고기', '연어', '참치', '흰살생선', '계란', '계란흰자', '웨이 프로틴', '카제인 프로틴', '두부', '그릭요거트'];
+            const carbFoods = ['현미밥', '통밀빵', '고구마', '바나나', '사과', '오트밀', '퀴노아', '베리류'];
+            const fatFoods = ['견과류', '아몬드', '아보카도', '올리브오일'];
+            if (proteinFoods.includes(foodName)) return 'protein';
+            if (carbFoods.includes(foodName)) return 'carb';
+            if (fatFoods.includes(foodName)) return 'fat';
+            return 'protein';
+        }
+        
+        function adaptMealsByPreference(baseMeals, preferences) {
+            const adaptedMeals = JSON.parse(JSON.stringify(baseMeals));
+
+            const foodProfiles = { // Nutrition per 100g
+                '닭가슴살': { protein: 31, carb: 0, fat: 3.6, unit: 'g', category: 'meat' },
+                '흰살생선': { protein: 22, carb: 0, fat: 2.5, unit: 'g', category: 'seafood' },
+                '두부': { protein: 8, carb: 1.9, fat: 4.8, unit: 'g', category: 'plant' }
+            };
+
+            const getReplacement = (categoryToRemove) => {
+                if (categoryToRemove === 'meat') {
+                    if (preferences.includes('seafood')) return '흰살생선';
+                    if (preferences.includes('plant')) return '두부';
+                }
+                if (categoryToRemove === 'seafood') {
+                    if (preferences.includes('meat')) return '닭가슴살';
+                    if (preferences.includes('plant')) return '두부';
+                }
+                if (categoryToRemove === 'plant') {
+                    if (preferences.includes('meat')) return '닭가슴살';
+                    if (preferences.includes('seafood')) return '흰살생선';
+                }
+                return null;
+            };
+
+            Object.values(adaptedMeals).forEach(meal => {
+                meal.foods = meal.foods.map(food => {
+                    const foodCategory = food.category;
+                    if (['meat', 'seafood', 'plant'].includes(foodCategory) && !preferences.includes(foodCategory)) {
+                        const replacementName = getReplacement(foodCategory);
+                        if (replacementName) {
+                            const originalTotalProtein = food.protein;
+                            const replacementProfile = foodProfiles[replacementName];
+                            
+                            if (replacementProfile.protein === 0) return food;
+
+                            const newAmount = (originalTotalProtein / replacementProfile.protein) * 100;
+                            
+                            return {
+                                ...food,
+                                name: replacementName,
+                                category: replacementProfile.category,
+                                protein: originalTotalProtein,
+                                carb: (newAmount / 100) * replacementProfile.carb,
+                                fat: (newAmount / 100) * replacementProfile.fat,
+                                baseAmount: Math.round(newAmount),
+                                unit: replacementProfile.unit,
+                                amount: `${Math.round(newAmount)}${replacementProfile.unit}`
+                            };
+                        }
+                    }
+                    return food;
+                });
+            });
+
+            return adaptedMeals;
+        }
+
+
+        function balanceMealMacrosIteratively(baseMeals, targetMacros) {
+            let adjustedMeals = JSON.parse(JSON.stringify(baseMeals));
+            const dampeningFactor = 0.4; 
+            const maxIterations = 25;
+
+            for (let i = 0; i < maxIterations; i++) {
+                let currentTotals = { protein: 0, carb: 0, fat: 0 };
+                Object.values(adjustedMeals).forEach(meal => {
+                    meal.foods.forEach(food => {
+                        currentTotals.protein += food.protein;
+                        currentTotals.carb += food.carb;
+                        currentTotals.fat += food.fat;
+                    });
+                });
+
+                const ratios = {
+                    protein: currentTotals.protein > 0 ? targetMacros.protein / currentTotals.protein : 1,
+                    carb: currentTotals.carb > 0 ? targetMacros.carbs / currentTotals.carb : 1,
+                    fat: currentTotals.fat > 0 ? targetMacros.fat / currentTotals.fat : 1
+                };
+
+                if (Math.abs(ratios.protein - 1) < 0.05 && Math.abs(ratios.carb - 1) < 0.05 && Math.abs(ratios.fat - 1) < 0.05) {
+                    break;
+                }
+
+                Object.values(adjustedMeals).forEach(meal => {
+                    meal.foods.forEach(food => {
+                        const primaryNutrient = getPrimaryNutrient(food.name);
+                        let adjustmentRatio = ratios[primaryNutrient];
+                        
+                        const foodTotalCalories = (food.protein * 4) + (food.carb * 4) + (food.fat * 9);
+                        if (foodTotalCalories > 0) {
+                            const fatCalorieContribution = (food.fat * 9) / foodTotalCalories;
+                            if (ratios.fat < 0.98 && fatCalorieContribution > 0.30) {
+                                adjustmentRatio = (adjustmentRatio + (ratios.fat * 2)) / 3;
+                            }
+                        }
+
+                        const effectiveRatio = 1 + (adjustmentRatio - 1) * dampeningFactor;
+
+                        const originalMacrosPerBase = {
+                            protein: food.protein / food.baseAmount,
+                            carb: food.carb / food.baseAmount,
+                            fat: food.fat / food.baseAmount
+                        };
+
+                        let newAmount = food.baseAmount * effectiveRatio;
+                        newAmount = Math.max(newAmount, 1); 
+                        
+                        food.baseAmount = newAmount;
+                        food.protein = newAmount * originalMacrosPerBase.protein;
+                        food.carb = newAmount * originalMacrosPerBase.carb;
+                        food.fat = newAmount * originalMacrosPerBase.fat;
+
+                        if (food.unit === "개" || food.unit === "장") {
+                            food.amount = `${parseFloat(newAmount.toFixed(1))}${food.unit}`;
+                        } else {
+                            food.amount = `${Math.round(newAmount)}${food.unit}`;
+                        }
+                    });
+                });
+            }
+            return adjustedMeals;
+        }
+
+        function calculateCalories(weight, goal, activity) {
+            const age = 25;
+            const height = 170;
+            const bmr = 88.362 + 13.397 * weight + 4.799 * height - 5.677 * age;
+            const activityMultipliers = { low: 1.375, moderate: 1.55, high: 1.725 };
+            const tdee = bmr * activityMultipliers[activity];
+            const goalMultiplier = scientificMealData[goal].calorieMultiplier;
+            return Math.round(tdee * goalMultiplier);
+        }
+
+        function calculateMacros(totalCalories, goal) {
+            const data = scientificMealData[goal];
+            const proteinCalories = totalCalories * data.proteinRatio;
+            const carbCalories = totalCalories * data.carbRatio;
+            const fatCalories = totalCalories * data.fatRatio;
+            return {
+                protein: Math.round(proteinCalories / 4),
+                carbs: Math.round(carbCalories / 4),
+                fat: Math.round(fatCalories / 9),
+                totalCalories: totalCalories
+            };
+        }
+
+        document.getElementById("proteinForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            calculateAndDisplay();
+        });
+
+        function calculateAndDisplay() {
+            const weight = parseFloat(document.getElementById("weight").value);
+            const goal = document.getElementById("goal").value;
+            const activity = document.getElementById("activity").value;
+            if (!weight || !goal || !activity) { alert("모든 필드를 입력해주세요."); return; }
+
+            const preferences = Array.from(document.querySelectorAll('.preference-label.selected')).map(el => el.dataset.value);
+            if (preferences.length === 0) { alert("적어도 하나의 식품 종류를 선택해주세요."); return; }
+
+            document.getElementById("loading").style.display = "block";
+            ['resultSectionWrapper', 'mealPlansSection', 'mainProteinCard', 'captureSection'].forEach(id => document.getElementById(id).style.display = 'none');
+
+            setTimeout(() => {
+                const goalData = scientificMealData[goal];
+                const totalCalories = calculateCalories(weight, goal, activity);
+                const macros = calculateMacros(totalCalories, goal);
+                const totalProtein = Math.round(weight * goalData.proteinPerKg);
+                macros.protein = totalProtein; 
+
+                lastCalculationResult = {
+                    protein: totalProtein,
+                    goal,
+                    preferences,
+                    description: goalData.description,
+                    calories: totalCalories,
+                    macros,
+                    weight,
+                    activity
+                };
+
+                document.getElementById("loading").style.display = "none";
+                displayResults(lastCalculationResult);
+                document.getElementById("mainProteinCard").style.display = "block";
+                document.getElementById("mainProteinAmount").textContent = totalProtein + "g";
+                document.getElementById("captureSection").style.display = "block";
+            }, 1500);
+        }
+
+        function displayResults(result) {
+            const { protein, goal, description, calories, macros } = result;
+            
+            document.getElementById("goalDescription").textContent = description;
+            
+            document.getElementById("nutritionBreakdown").innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-red-500/20 p-4 rounded-lg border border-red-500">
+                        <div class="font-bold text-white">💪 필요 단백질</div>
+                        <div class="text-2xl font-black text-white">${protein}g</div>
+                    </div>
+                    <div class="bg-gray-500/20 p-4 rounded-lg">
+                        <div class="font-bold text-white">🔥 필요 칼로리</div>
+                        <div class="text-2xl font-black text-white">${calories}kcal</div>
+                    </div>
+                    <div class="bg-gray-500/20 p-4 rounded-lg">
+                        <div class="font-bold text-white">🍚 필요 탄수화물</div>
+                        <div class="text-2xl font-black text-white">${macros.carbs}g</div>
+                    </div>
+                    <div class="bg-gray-500/20 p-4 rounded-lg">
+                        <div class="font-bold text-white">🥑 필요 지방</div>
+                        <div class="text-2xl font-black text-white">${macros.fat}g</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById("resultSectionWrapper").style.display = "block";
+            document.getElementById("resultSectionWrapper").scrollIntoView({ behavior: "smooth", block: "start" });
+            displayScientificMealPlans(result);
+        }
+        
+        function getCategoryByFood(foodName) {
+            const categories = {
+                '단백질': ['닭가슴살', '소고기', '돼지고기', '연어', '참치', '흰살생선', '계란', '계란흰자', '웨이 프로틴', '카제인 프로틴', '두부', '그릭요거트'],
+                '탄수화물': ['현미밥', '통밀빵', '고구마', '바나나', '사과', '오트밀', '퀴노아', '베리류'],
+                '채소': ['브로콜리', '시금치', '양상추', '채소샐러드', '채소믹스'],
+                '견과류': ['견과류', '아몬드', '아보카도'],
+                '기타': ['올리브오일']
+            };
+            for (const [category, foods] of Object.entries(categories)) {
+                if (foods.includes(foodName)) {
+                    return category;
+                }
+            }
+            return '기타';
+        }
+
+        function createShoppingListHtml(meals) {
+            const ingredients = new Map();
+            Object.values(meals).forEach(meal => {
+                meal.foods.forEach(food => {
+                    if (ingredients.has(food.name)) {
+                        const existing = ingredients.get(food.name);
+                        existing.protein += food.protein;
+                        // For simplicity, we are not aggregating amounts here due to unit differences
+                    } else {
+                        ingredients.set(food.name, { ...food, category: getCategoryByFood(food.name) });
+                    }
+                });
+            });
+
+            const aggregatedIngredients = Array.from(ingredients.values());
+            const categoryGroups = {};
+            aggregatedIngredients.forEach(ing => {
+                if (!categoryGroups[ing.category]) categoryGroups[ing.category] = [];
+                categoryGroups[ing.category].push(ing);
+            });
+
+            const categoryOrder = ['단백질', '탄수화물', '채소', '견과류', '기타'];
+            const categoryIcons = { '단백질': '🥩', '탄수화물': '🍚', '채소': '🥬', '견과류': '🥜', '기타': '🧂' };
+
+            let html = `<div class="input-card p-8 my-8 shadow-lg">
+                <h4 class="text-center text-xl mb-2 font-bold"><i class="fas fa-shopping-cart text-primary-red"></i> 필요한 식재료 쇼핑리스트</h4>
+                <p class="text-center text-gray-400 text-sm mb-8">아래 식재료들을 클릭하면 쿠팡에서 바로 구매할 수 있습니다!</p>`;
+
+            categoryOrder.forEach(category => {
+                if (categoryGroups[category] && categoryGroups[category].length > 0) {
+                    html += `<div class="mb-6"><h6 class="font-bold mb-3">${categoryIcons[category]} ${category}</h6><div class="grid grid-cols-1 md:grid-cols-3 gap-3">`;
+                    categoryGroups[category].forEach(ing => {
+                        const link = `https://www.coupang.com/np/search?q=${encodeURIComponent(ing.name)}&channel=user`;
+                        html += `<a href="${link}" target="_blank" class="block bg-dark-bg p-3 rounded-lg border border-border-color hover:border-primary-red transition">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">${ing.name}</span>
+                                <span class="bg-primary-red text-white text-xs font-bold px-2 py-1 rounded-full">💪 ${ing.protein.toFixed(1)}g</span>
+                            </div></a>`;
+                    });
+                    html += `</div></div>`;
+                }
+            });
+
+            const totalProtein = aggregatedIngredients.reduce((sum, ing) => sum + ing.protein, 0);
+            const totalItems = aggregatedIngredients.length;
+            const shoppingTime = Math.ceil(totalItems / 5);
+
+            html += `<div class="mt-8 pt-6 border-t border-border-color"><div class="grid grid-cols-3 text-center">
+                <div><div class="text-gray-400 text-sm">총 식재료 수</div><div class="font-bold text-lg">${totalItems}가지</div></div>
+                <div><div class="text-gray-400 text-sm">총 단백질</div><div class="font-bold text-lg">${totalProtein.toFixed(1)}g</div></div>
+                <div><div class="text-gray-400 text-sm">예상 쇼핑시간</div><div class="font-bold text-lg">${shoppingTime}분</div></div>
+            </div></div></div>`;
+
+            html += `<div class="input-card p-8 my-8 shadow-lg text-center">
+                <h4 class="text-xl mb-2 font-bold">mealStack 자체 식단 패키지 예약 안내</h4>
+                <p class="text-gray-400 mb-6">주 7~8만원의 하루 3-4끼의 자체 벌크업 식단 패키지를 런칭한다면 관심 있으실까요?</p>
+                <form id="subscriptionForm" class="flex justify-center"><input type="email" id="emailInput" class="form-control w-2/3" placeholder="your-email@example.com" required>
+                <button type="submit" class="btn btn-primary ml-2"><i class="fas fa-bell"></i> 예약</button></form>
+                <div id="subscriptionSuccessMessage" class="text-green-400 mt-2" style="display:none;">예약 명단에 등록되었습니다!</div>
+                <p class="text-gray-500 text-sm mt-4">또는 SNS 채널을 팔로우하고 소식을 받아보세요!</p>
+                <div class="mt-3">
+                    <a href="#" aria-label="YouTube" class="text-gray-400 hover:text-white mx-3 text-3xl transition-colors"><i class="fab fa-youtube"></i></a>
+                    <a href="#" aria-label="Instagram" class="text-gray-400 hover:text-white mx-3 text-3xl transition-colors"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>`;
+
+            return html;
+        }
+
+        function displayScientificMealPlans(result) {
+            const { goal, preferences, macros } = result;
+            const mealPlansSection = document.getElementById("mealPlansSection");
+            const mealPlansContainer = document.getElementById("mealPlans");
+
+            let baseMeals = JSON.parse(JSON.stringify(scientificMealData[goal].meals));
+            let adaptedForPrefs = adaptMealsByPreference(baseMeals, preferences);
+            let adaptedMeals = balanceMealMacrosIteratively(adaptedForPrefs, macros);
+            
+            let html = '<div class="row">';
+            let finalTotals = { protein: 0, carb: 0, fat: 0, calories: 0 };
+
+            for (const mealData of Object.values(adaptedMeals)) {
+                let mealProtein = mealData.foods.reduce((sum, food) => sum + food.protein, 0);
+                let mealCarb = mealData.foods.reduce((sum, food) => sum + food.carb, 0);
+                let mealFat = mealData.foods.reduce((sum, food) => sum + food.fat, 0);
+                let mealCalories = mealProtein * 4 + mealCarb * 4 + mealFat * 9;
+
+                finalTotals.protein += mealProtein;
+                finalTotals.carb += mealCarb;
+                finalTotals.fat += mealFat;
+                finalTotals.calories += mealCalories;
+
+                html += `<div class="col-md-6 mb-4">
+                            <div class="meal-card p-6">
+                                <h5 class="font-bold text-xl mb-4 text-white">${mealData.name}</h5>`;
+                
+                mealData.foods.forEach(food => {
+                    const link = `https://www.coupang.com/np/search?q=${encodeURIComponent(food.name)}&channel=user`;
+                    html += `<div class="flex justify-between items-center py-2 border-b border-border-color">
+                                <a href="${link}" target="_blank" class="text-inherit hover:text-primary-red">${food.name} (${food.amount})</a>
+                                <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">${food.protein.toFixed(1)}g</span>
+                            </div>`;
+                });
+
+                html += `<div class="mt-4 p-4 rounded-lg" style="background-color: var(--primary-red);">
+                            <div class="text-center font-bold text-white text-lg">💪 단백질: ${mealProtein.toFixed(1)}g</div>
+                            <div class="text-center text-sm text-white/80 mt-1">
+                                탄수화물: ${mealCarb.toFixed(1)}g | 지방: ${mealFat.toFixed(1)}g
+                            </div>
+                            <div class="text-center text-sm text-white/80 mt-1">
+                                🔥 ${mealData.name} 칼로리: ${Math.round(mealCalories)}kcal
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            html += '</div>';
+
+            html += createTotalNutritionCard(finalTotals, macros);
+            html += createShoppingListHtml(adaptedMeals);
+
+            mealPlansContainer.innerHTML = html;
+            mealPlansSection.style.display = "block";
+
+            // Add event listener for the new subscription form
+            document.getElementById("subscriptionForm").addEventListener("submit", function(e) {
+                e.preventDefault();
+                const email = document.getElementById("emailInput").value;
+                if(email) {
+                    console.log("Subscription email:", email);
+                    document.getElementById("subscriptionSuccessMessage").style.display = "block";
+                    setTimeout(() => {
+                         document.getElementById("subscriptionSuccessMessage").style.display = "none";
+                    }, 3000);
+                    document.getElementById("emailInput").value = "";
+                }
+            });
+        }
+
+        function createTotalNutritionCard(finalTotals, targetMacros) {
+            const proteinAch = Math.round((finalTotals.protein / targetMacros.protein) * 100);
+            const carbAch = Math.round((finalTotals.carb / targetMacros.carbs) * 100);
+            const fatAch = Math.round((finalTotals.fat / targetMacros.fat) * 100);
+            const calAch = Math.round((finalTotals.calories / targetMacros.totalCalories) * 100);
+            
+            const getAchColor = rate => (rate >= 90 && rate <= 110) ? 'text-green-400' : (rate >= 80 && rate <= 120) ? 'text-yellow-400' : 'text-red-400';
+
+            return `<div class="input-card p-8 my-8 shadow-lg border-2 border-primary-red">
+                <h4 class="text-center text-primary-red text-2xl mb-6 font-bold"><i class="fas fa-check-circle"></i> 최종 식단 요약</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div>
+                        <div class="text-gray-400 text-sm">단백질</div>
+                        <div class="text-2xl font-bold">${finalTotals.protein.toFixed(1)}g</div>
+                        <div class="font-bold ${getAchColor(proteinAch)}">${proteinAch}% 달성</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400 text-sm">탄수화물</div>
+                        <div class="text-2xl font-bold">${finalTotals.carb.toFixed(1)}g</div>
+                        <div class="font-bold ${getAchColor(carbAch)}">${carbAch}% 달성</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400 text-sm">지방</div>
+                        <div class="text-2xl font-bold">${finalTotals.fat.toFixed(1)}g</div>
+                        <div class="font-bold ${getAchColor(fatAch)}">${fatAch}% 달성</div>
+                    </div>
+                     <div>
+                        <div class="text-gray-400 text-sm">칼로리</div>
+                        <div class="text-2xl font-bold">${Math.round(finalTotals.calories)}kcal</div>
+                        <div class="font-bold ${getAchColor(calAch)}">${calAch}% 달성</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        window.captureResult = function () {
+            const mealPlansSection = document.getElementById('mealPlansSection');
+            if (!lastCalculationResult || !mealPlansSection) { alert("먼저 계산을 완료해주세요."); return; }
+            alert("식단표를 이미지로 저장합니다. 잠시만 기다려주세요...");
+            html2canvas(mealPlansSection, { backgroundColor: "#1a1a1a", scale: 1.5 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `mealStack_plan_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            }).catch(err => {
+                console.error("캡처 오류:", err);
+                alert("이미지 저장에 실패했습니다.");
+            });
+        };
+
+        window.shareResult = function () {
+            if (!lastCalculationResult) return;
+            const { protein, goal, calories } = lastCalculationResult;
+            const goalKorean = document.querySelector(`#goal option[value=${goal}]`).textContent;
+            const shareText = `🔥 나의 맞춤 식단 결과!\n\n💪 단백질: ${protein}g\n🎯 목표: ${goalKorean}\n📊 칼로리: ${calories}kcal\n\nmealStack에서 당신만의 완벽한 식단을 찾아보세요!`;
+            if (navigator.share) {
+                navigator.share({ title: 'mealStack 맞춤 식단 결과', text: shareText, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(`${shareText}\n${window.location.href}`).then(() => alert('결과가 클립보드에 복사되었습니다!'));
+            }
+        };
+    });
+    </script>
+  </body>
+</html>
