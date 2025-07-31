@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mealStack - 맞춤형 단백질 계산기</title>
+    <meta
+      name="description"
+      content="당신의 체형 목표에 맞는 완벽한 단백질 섭취량과 식단을 제공합니다. 벌크업, 린벌크업, 컷팅, 유지 목적별 맞춤 식단 계산기"
+    />
+
+    <!-- 외부 CSS 라이브러리 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 프로젝트 CSS -->
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body class="bg-dark-bg text-text-light">
+    <!-- 네비게이션 -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand text-2xl font-bold text-primary-red" href="#">
+          <i class="fas fa-dumbbell"></i> mealStack
+        </a>
+      </div>
+    </nav>
+
+    <!-- 히어로 섹션 -->
+    <section class="text-center py-20">
+      <div class="container">
+        <h1 class="hero-title text-6xl font-black mb-4">
+          맞춤형 단백질 식단 계산기
+        </h1>
+        <p class="hero-subtitle text-lg mb-8">
+          당신의 체형 목표에 맞는 완벽한 단백질 섭취량과 식단을 제공합니다
+        </p>
+      </div>
+    </section>
+
+    <!-- 입력 폼 섹션 -->
+    <section class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="input-card p-8 mb-8 shadow-lg">
+            <h3 class="text-center mb-4 text-xl">
+              <i class="fas fa-calculator text-danger"></i> 계산 시작하기
+            </h3>
+            <form id="proteinForm">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">몸무게 (kg)</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="weight"
+                    min="40"
+                    max="150"
+                    placeholder=""
+                    required
+                  />
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">체형 목표</label>
+                  <select class="form-select" id="goal" required>
+                    <option value="">선택하세요</option>
+                    <option value="bulkup">벌크업 (근육 증가)</option>
+                    <option value="lean_bulkup">린벌크업 (깔끔한 증량)</option>
+                    <option value="cutting">컷팅 (체지방 감소)</option>
+                    <option value="maintain">유지 (현상 유지)</option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">운동 횟수</label>
+                  <select class="form-select" id="activity" required>
+                    <option value="">선택하세요</option>
+                    <option value="low">낮음 (주 3회 이하)</option>
+                    <option value="moderate">보통 (주 4-5회)</option>
+                    <option value="high">높음 (주 6회 이상)</option>
+                  </select>
+                </div>
+              </div>
+              <div
+                class="p-4 my-4 rounded-xl"
+                style="
+                  background: rgba(0, 0, 0, 0.2);
+                  border: 1px solid var(--border-color);
+                "
+              >
+                <h5 class="mb-3 text-center">
+                  선호하는 식품 종류
+                  <small class="text-gray-400 block">(중복 선택 가능)</small>
+                </h5>
+                <div class="d-flex flex-wrap justify-content-center gap-4">
+                  <label
+                    data-value="meat"
+                    class="preference-label selected inline-block bg-card-bg text-text-light px-6 py-3 border-2 border-border-color rounded-full cursor-pointer font-medium whitespace-nowrap"
+                    ><i class="fas fa-drumstick-bite"></i> 육류</label
+                  >
+                  <label
+                    data-value="seafood"
+                    class="preference-label selected inline-block bg-card-bg text-text-light px-6 py-3 border-2 border-border-color rounded-full cursor-pointer font-medium whitespace-nowrap"
+                    ><i class="fas fa-fish"></i> 어류/해산물</label
+                  >
+                  <label
+                    data-value="plant"
+                    class="preference-label selected inline-block bg-card-bg text-text-light px-6 py-3 border-2 border-border-color rounded-full cursor-pointer font-medium whitespace-nowrap"
+                    ><i class="fas fa-leaf"></i> 식물성</label
+                  >
+                </div>
+              </div>
+              <div class="text-center">
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-lg font-bold uppercase tracking-wider py-3 px-8"
+                >
+                  <i class="fas fa-bolt"></i> 단백질 양 계산하기
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- 메인 단백질 결과 카드 -->
+          <div
+            id="mainProteinCard"
+            class="text-center rounded-3xl p-8 my-6"
+            style="display: none"
+          >
+            <div
+              class="text-7xl font-black text-white"
+              id="mainProteinAmount"
+              style="text-shadow: 0 0 30px rgba(255, 255, 255, 0.8)"
+            >
+              0
+            </div>
+            <div
+              class="text-xl font-bold uppercase tracking-widest text-white/90 mt-2"
+            >
+              일일 권장 단백질
+            </div>
+          </div>
+
+          <!-- 캡처 및 공유 버튼 -->
+          <div
+            class="text-center my-8"
+            id="captureSection"
+            style="display: none"
+          >
+            <button
+              class="btn btn-primary font-bold uppercase tracking-wider py-3 px-6 m-2"
+              onclick="captureResult()"
+            >
+              <i class="fas fa-camera"></i> 📋 식단표 이미지로 저장
+            </button>
+            <button
+              class="btn btn-primary font-bold uppercase tracking-wider py-3 px-6 m-2"
+              onclick="shareResult()"
+            >
+              <i class="fas fa-share"></i> 결과 공유하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 로딩 표시 -->
+    <div class="container">
+      <div class="text-center my-8" id="loading" style="display: none">
+        <i class="fas fa-spinner fa-spin fa-3x text-danger"></i>
+        <p class="mt-3">최적의 식단을 계산 중입니다...</p>
+      </div>
+    </div>
+
+    <!-- 결과 섹션 -->
+    <section class="container" id="resultSectionWrapper" style="display: none">
+      <div id="resultSection" class="input-card p-8 mb-8 shadow-lg">
+        <h5 class="text-center text-primary-red text-2xl mb-6 font-bold">
+          <i class="fas fa-chart-pie"></i> 목표 영양소
+        </h5>
+        <div id="goalDescription" class="text-center text-gray-400 mb-6"></div>
+        <div id="nutritionBreakdown" class="text-center"></div>
+      </div>
+    </section>
+
+    <!-- 식단 계획 섹션 -->
+    <section class="container" id="mealPlansSection" style="display: none">
+      <h2 class="text-4xl font-bold text-center my-12 text-primary-red">
+        <i class="fas fa-utensils"></i> 추천 식단
+      </h2>
+      <div id="mealPlans"></div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer
+      class="text-center py-5 mt-5"
+      style="border-top: 1px solid var(--border-color)"
+    >
+      <div class="container">
+        <p class="text-gray-500">
+          © 2025 mealStack. 건강한 단백질 식단을 시작하세요.
+        </p>
+      </div>
+    </footer>
+
+    <!-- 외부 JavaScript 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 프로젝트 JavaScript 모듈 -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/api.js"></script>
+    <script src="scripts/components/proteinCalc.js"></script>
+    <script src="scripts/components/mealAdapter.js"></script>
+    <script src="scripts/components/uiHandler.js"></script>
+    <script src="scripts/main.js"></script>
+  </body>
+</html>

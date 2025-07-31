@@ -1,0 +1,251 @@
+/* 폰트 및 CSS 변수 설정 */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap");
+
+:root {
+  --primary-red: #dc2626;
+  --dark-bg: #111111;
+  --card-bg: rgba(38, 38, 38, 0.6);
+  --text-light: #f0f0f0;
+  --border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 유틸리티 클래스 */
+.text-primary-red {
+  color: var(--primary-red) !important;
+}
+
+/* 기본 레이아웃 */
+body {
+  background-color: var(--dark-bg);
+  background-image: radial-gradient(
+      circle at 10% 10%,
+      rgba(220, 38, 38, 0.1) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(220, 38, 38, 0.08) 0%,
+      transparent 50%
+    );
+  color: var(--text-light);
+  font-family: "Inter", "Pretendard", sans-serif;
+}
+
+/* 네비게이션 */
+.navbar {
+  background: rgba(17, 17, 17, 0.75) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* 히어로 섹션 */
+.hero-title {
+  background: linear-gradient(45deg, #ef4444, #f87171);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+}
+
+.hero-subtitle {
+  color: #a0a0a0;
+}
+
+/* 카드 컴포넌트 */
+.input-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(12px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.input-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(220, 38, 38, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(220, 38, 38, 0.2);
+}
+
+/* 버튼 스타일 */
+.btn-primary {
+  background: linear-gradient(45deg, var(--primary-red), #ef4444);
+  border: none;
+  border-radius: 9999px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4),
+    0 0 25px rgba(239, 68, 68, 0.3);
+}
+
+/* 폼 요소 */
+.form-control,
+.form-select {
+  background-color: rgba(17, 17, 17, 0.8);
+  color: var(--text-light);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  padding: 0.9rem 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-red);
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
+  background-color: rgba(17, 17, 17, 0.9);
+  color: var(--text-light);
+}
+
+/* 메인 단백질 카드 */
+#mainProteinCard {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border: 2px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 20px 50px rgba(220, 38, 38, 0.5),
+    0 0 30px rgba(220, 38, 38, 0.3);
+  animation: pulse 2.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 20px 50px rgba(220, 38, 38, 0.5),
+      0 0 30px rgba(220, 38, 38, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 25px 60px rgba(239, 68, 68, 0.6),
+      0 0 45px rgba(239, 68, 68, 0.4);
+  }
+}
+
+/* 선호도 라벨 */
+.preference-label.selected {
+  background: var(--primary-red);
+  border-color: var(--primary-red);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+}
+
+.preference-label {
+  transition: all 0.3s ease;
+}
+
+/* 커스텀 아코디언 */
+.custom-accordion-item {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(12px);
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.custom-accordion-item:hover {
+  transform: translateY(-8px);
+  border-color: rgba(220, 38, 38, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(220, 38, 38, 0.2);
+}
+
+.custom-accordion-header {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  border-radius: 1.25rem;
+  background: transparent;
+  color: var(--text-light);
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.custom-accordion-header.active {
+  background: linear-gradient(45deg, var(--primary-red), #ef4444);
+  color: white;
+  border-radius: 1.25rem 1.25rem 0 0;
+}
+
+.custom-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background-color: var(--card-bg);
+  border-radius: 0 0 1.25rem 1.25rem;
+}
+
+.custom-accordion-content.active {
+  max-height: 1000px;
+}
+
+.custom-accordion-body {
+  padding: 1rem 1.25rem;
+  color: var(--text-light);
+}
+
+.accordion-icon {
+  transition: transform 0.3s ease;
+}
+
+.accordion-icon.rotated {
+  transform: rotate(180deg);
+}
+
+/* 로딩 스피너 */
+.loading-spinner {
+  border: 3px solid rgba(220, 38, 38, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid var(--primary-red);
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 알림 메시지 */
+.alert-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.alert-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.alert-info {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
