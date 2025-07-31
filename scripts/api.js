@@ -38,6 +38,8 @@ async function sendSubscriptionEmail(email, userProfile) {
         };
 
         console.log("📧 구독 시도:", email);
+        console.log("📦 전송할 데이터:", requestData);
+        console.log("🌐 API URL:", EMAIL_API_URL);
 
         const response = await fetch(EMAIL_API_URL, {
             method: "POST",
@@ -45,8 +47,11 @@ async function sendSubscriptionEmail(email, userProfile) {
                 "Content-Type": "text/plain;charset=utf-8",
             },
             body: JSON.stringify(requestData),
-            mode: "no-cors",
+            // mode: "no-cors", // 임시로 주석 처리
         });
+
+        console.log("📨 응답 받음:", response);
+        console.log("📊 응답 상태:", response.status);
 
         // 성공 메시지 표시
         successMessage.innerHTML = `✅ <strong>신청 완료!</strong><br/>
