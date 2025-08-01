@@ -55,7 +55,39 @@
             </h3>
             <form id="proteinForm">
               <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 col-lg-3 mb-3">
+                  <label class="form-label">성별</label>
+                  <select class="form-select" id="gender" required>
+                    <option value="">선택하세요</option>
+                    <option value="male">남성</option>
+                    <option value="female">여성</option>
+                  </select>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-3">
+                  <label class="form-label">나이</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="age"
+                    min="15"
+                    max="80"
+                    placeholder="예: 25"
+                    required
+                  />
+                </div>
+                <div class="col-md-6 col-lg-3 mb-3">
+                  <label class="form-label">키 (cm)</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="height"
+                    min="140"
+                    max="220"
+                    placeholder="예: 170"
+                    required
+                  />
+                </div>
+                <div class="col-md-6 col-lg-3 mb-3">
                   <label class="form-label">몸무게 (kg)</label>
                   <input
                     type="number"
@@ -63,11 +95,13 @@
                     id="weight"
                     min="40"
                     max="150"
-                    placeholder=""
+                    placeholder="예: 70"
                     required
                   />
                 </div>
-                <div class="col-md-4 mb-3">
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
                   <label class="form-label">체형 목표</label>
                   <select class="form-select" id="goal" required>
                     <option value="">선택하세요</option>
@@ -77,7 +111,7 @@
                     <option value="maintain">유지 (현상 유지)</option>
                   </select>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 mb-3">
                   <label class="form-label">운동 횟수</label>
                   <select class="form-select" id="activity" required>
                     <option value="">선택하세요</option>

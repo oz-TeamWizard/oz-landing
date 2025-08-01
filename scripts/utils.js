@@ -34,11 +34,20 @@ function getPrimaryNutrient(foodName) {
   return "protein";
 }
 
+// BMR 계산 (Harris-Benedict 공식)
+function calculateBMR(weight, height, age, gender) {
+  let bmr = 0;
+  if (gender === 'male') {
+    bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+  } else if (gender === 'female') {
+    bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+  }
+  return bmr;
+}
+
 // 칼로리 계산
-function calculateCalories(weight, goal, activity) {
-  const age = 25;
-  const height = 170;
-  const bmr = 88.362 + 13.397 * weight + 4.799 * height - 5.677 * age;
+function calculateCalories(weight, height, age, gender, goal, activity) {
+  const bmr = calculateBMR(weight, height, age, gender);
   const activityMultipliers = {
     low: 1.375,
     moderate: 1.55,
