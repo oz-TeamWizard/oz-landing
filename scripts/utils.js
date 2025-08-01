@@ -95,5 +95,81 @@ function toggleAccordion(headerId, contentId, iconId) {
   icon.classList.toggle('rotated');
 }
 
+// 아코디언 상태 저장 함수
+function saveAccordionStates() {
+  const states = [];
+  $$('.custom-accordion-header').forEach((header) => {
+    states.push({
+      headerId: header.id,
+      isActive: header.classList.contains('active')
+    });
+  });
+  $$('.custom-accordion-content').forEach((content) => {
+    states.push({
+      contentId: content.id,
+      isActive: content.classList.contains('active')
+    });
+  });
+  $$('.accordion-icon').forEach((icon) => {
+    states.push({
+      iconId: icon.id,
+      isActive: icon.classList.contains('rotated')
+    });
+  });
+  return states;
+}
+
+// 모든 아코디언 펼치기 함수
+function expandAllAccordions() {
+  $$('.custom-accordion-header').forEach((header) => {
+    header.classList.add('active');
+  });
+  $$('.custom-accordion-content').forEach((content) => {
+    content.classList.add('active');
+  });
+  $$('.accordion-icon').forEach((icon) => {
+    icon.classList.add('rotated');
+  });
+}
+
+// 아코디언 상태 복원 함수
+function restoreAccordionStates(savedStates) {
+  savedStates.forEach((state) => {
+    if (state.headerId) {
+      const element = $(state.headerId);
+      if (element) {
+        if (state.isActive) {
+          element.classList.add('active');
+        } else {
+          element.classList.remove('active');
+        }
+      }
+    }
+    if (state.contentId) {
+      const element = $(state.contentId);
+      if (element) {
+        if (state.isActive) {
+          element.classList.add('active');
+        } else {
+          element.classList.remove('active');
+        }
+      }
+    }
+    if (state.iconId) {
+      const element = $(state.iconId);
+      if (element) {
+        if (state.isActive) {
+          element.classList.add('rotated');
+        } else {
+          element.classList.remove('rotated');
+        }
+      }
+    }
+  });
+}
+
 // 전역 스코프에서 접근 가능하도록 설정
 window.toggleAccordion = toggleAccordion;
+window.saveAccordionStates = saveAccordionStates;
+window.expandAllAccordions = expandAllAccordions;
+window.restoreAccordionStates = restoreAccordionStates;

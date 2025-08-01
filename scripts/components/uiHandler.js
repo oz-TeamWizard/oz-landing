@@ -267,21 +267,38 @@ function captureResult() {
     alert('먼저 계산을 완료해주세요.');
     return;
   }
+  
   alert('식단표를 이미지로 저장합니다. 잠시만 기다려주세요...');
-  html2canvas(mealPlansSection, {
-    backgroundColor: '#1a1a1a',
-    scale: 1.5,
-  })
-    .then((canvas) => {
-      const link = document.createElement('a');
-      link.download = `mealStack_plan_${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+  
+  // 1. 현재 아코디언 상태 저장
+  const savedStates = saveAccordionStates();
+  
+  // 2. 모든 아코디언 펼치기
+  expandAllAccordions();
+  
+  // 3. CSS 애니메이션 완료 대기 후 캡처
+  setTimeout(() => {
+    html2canvas(mealPlansSection, {
+      backgroundColor: '#1a1a1a',
+      scale: 1.5,
     })
-    .catch((err) => {
-      console.error('캡처 오류:', err);
-      alert('이미지 저장에 실패했습니다.');
-    });
+      .then((canvas) => {
+        // 4. 캡처 완료 후 원래 상태 복원
+        restoreAccordionStates(savedStates);
+        
+        // 5. 이미지 다운로드
+        const link = document.createElement('a');
+        link.download = `mealStack_plan_${new Date().toISOString().slice(0, 10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      })
+      .catch((err) => {
+        // 6. 오류 시에도 상태 복원
+        restoreAccordionStates(savedStates);
+        console.error('캡처 오류:', err);
+        alert('이미지 저장에 실패했습니다.');
+      });
+  }, 300); // CSS 애니메이션 시간 고려
 }
 
 /**
