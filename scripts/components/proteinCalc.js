@@ -9,7 +9,7 @@ const scientificMealData = {
     proteinPerKg: 2.2,
     calorieMultiplier: 1.15,
     carbRatio: 0.6,
-    proteinRatio: 0.3,
+    proteinRatio: 0.2,
     fatRatio: 0.1,
     meals: {
       breakfast: {
@@ -52,7 +52,7 @@ const scientificMealData = {
     proteinPerKg: 1.9,
     calorieMultiplier: 1.08,
     carbRatio: 0.5,
-    proteinRatio: 0.3,
+    proteinRatio: 0.2,
     fatRatio: 0.2,
     meals: {
       breakfast: {
@@ -93,7 +93,7 @@ const scientificMealData = {
     proteinPerKg: 2.4,
     calorieMultiplier: 0.85,
     carbRatio: 0.4,
-    proteinRatio: 0.4,
+    proteinRatio: 0.25,
     fatRatio: 0.2,
     meals: {
       breakfast: {
@@ -132,7 +132,7 @@ const scientificMealData = {
     proteinPerKg: 1.6,
     calorieMultiplier: 1.0,
     carbRatio: 0.5,
-    proteinRatio: 0.3,
+    proteinRatio: 0.2,
     fatRatio: 0.2,
     meals: {
       breakfast: {
