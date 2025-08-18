@@ -26,8 +26,17 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Replace API URL
+      env:
+        EMAIL_API_URL: ${{ secrets.EMAIL_API_URL }}
       run: |
-        sed -i 's#{{EMAIL_API_URL}}#${{ secrets.EMAIL_API_URL }}#g' index.html
+        python3 -c "
+        import os
+        with open('index.html', 'r') as f:
+            content = f.read()
+        content = content.replace('{{EMAIL_API_URL}}', os.environ['EMAIL_API_URL'])
+        with open('index.html', 'w') as f:
+            f.write(content)
+        "
         
     - name: Setup Pages
       uses: actions/configure-pages@v4
