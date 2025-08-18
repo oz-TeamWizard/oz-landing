@@ -1,7 +1,3 @@
-/**
- * mealStack 구독 신청 처리 - 바로 사용 가능한 완성본
- * 배포 URL: https://script.google.com/macros/s/AKfycbwjieEzwVqwHs8BAnE2BIrHpqaB31swH3o3u70nRfZrDa__2JoVl-86EwzBx8IwhMgm/exec
- */
 
 // 🔥 자동으로 스프레드시트를 생성하거나 기존 것을 사용
 let SHEET_ID =
