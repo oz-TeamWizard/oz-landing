@@ -1,8 +1,8 @@
 /**
  * API 통신 관련 함수
  */
-const EMAIL_API_URL = window.APP_CONFIG?.EMAIL_API_URL || 
-    "https://script.google.com/macros/s/AKfycbyCOwJuLBHgyC3_SIvDVHbg2pbmdfT48U0rUYf4-UBoGD_RblzekCD3_zG31IxfewYB/exec";
+const EMAIL_API_URL =
+    "https://script.google.com/macros/s/AKfycbyCOwJuLBHgyC3_SIvDVHbg2pbmdfT48U0rUYf4-UBoGD_RblzekCD3_zG31IxfewYB/exec"; // Google Apps Script URL (실제 배포된 URL로 교체 필요) // 원본 배포 URL
 //const EMAIL_API_URL ="https://script.google.com/macros/s/AKfycbzWMfmfaojIrVY4Vj9eZGn7HURbmhQPLDJZC7uwgprAtkeWi3YG_8OZ1lGF98Fb3t4f/exec"; // 나종한 배포 URL
 
 /**
