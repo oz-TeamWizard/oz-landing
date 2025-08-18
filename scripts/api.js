@@ -47,13 +47,12 @@ async function sendSubscriptionEmail(email, userProfile) {
                 "Content-Type": "text/plain;charset=utf-8",
             },
             body: JSON.stringify(requestData),
-            mode: "no-cors", // CORS 모드 활성화
+            // mode: "no-cors", // 임시로 주석 처리
         });
 
         console.log("📨 응답 받음:", response);
         console.log("📊 응답 상태:", response.status);
 
-        // no-cors 모드에서는 응답을 읽을 수 없으므로 바로 성공 처리
         // 성공 메시지 표시
         successMessage.innerHTML = `✅ <strong>신청 완료!</strong><br/>
       사전예약 안내 신청이 접수되었습니다.`;
