@@ -27,7 +27,7 @@ jobs:
       
     - name: Replace API URL
       run: |
-        sed -i 's/{{EMAIL_API_URL}}/${{ secrets.EMAIL_API_URL }}/g' index.html
+        sed -i 's#{{EMAIL_API_URL}}#${{ secrets.EMAIL_API_URL }}#g' index.html
         
     - name: Setup Pages
       uses: actions/configure-pages@v4
